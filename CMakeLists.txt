@@ -1,0 +1,77 @@
+cmake_minimum_required(VERSION 3.5)
+project(video_interface)
+
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(sensor_msgs REQUIRED)
+
+include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(include/video_interface)
+
+
+add_library(color_encoding SHARED
+  src/color_encoding.cpp )
+ament_target_dependencies(color_encoding OpenCV)
+target_compile_definitions(color_encoding
+  PRIVATE "VIDEO_PLAYER_BUILDING_DLL")
+
+
+add_executable(video_player src/video_player.cpp)
+target_include_directories(video_player PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+
+ament_target_dependencies(
+  video_player 
+  rclcpp 
+  OpenCV
+  sensor_msgs
+)
+target_link_libraries(video_player color_encoding)
+
+add_executable(video_saver src/video_saver.cpp)
+target_include_directories(video_saver PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(video_saver color_encoding)
+
+ament_target_dependencies(
+  video_saver 
+  rclcpp 
+  OpenCV
+  sensor_msgs
+)
+
+
+install(TARGETS
+  color_encoding
+  # trackmovements
+  ARCHIVE DESTINATION lib/${PROJECT_NAME}
+  LIBRARY DESTINATION lib/${PROJECT_NAME}
+  RUNTIME DESTINATION bin/${PROJECT_NAME})
+
+install(TARGETS 
+  video_player
+  video_saver
+  DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY
+  launch 
+  config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+ament_package()
