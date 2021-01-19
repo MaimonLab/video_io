@@ -11,29 +11,21 @@
 #include "cv_bridge/cv_bridge.h"
 
 #include "Video_Publisher_Node.hpp"
-
 #include "color_encoding.hpp"
 
 ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 {
 
+  config_found = this->declare_parameter<bool>("config_found", false);
+  loop_play = this->declare_parameter<bool>("loop_play", false);
+  publish_topic = this->declare_parameter<std::string>("topic", "image");
+  filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_interface/videos/fictrac_bee.mp4");
+  publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
+
+  count = 0;
+
   img_msg = std::make_shared<sensor_msgs::msg::Image>();
   img_msg->is_bigendian = false;
-
-  this->declare_parameter("config_found", false);
-  config_found = this->get_parameter("config_found").as_bool();
-
-  this->declare_parameter("loop_play", false);
-  loop_play = this->get_parameter("loop_play").as_bool();
-
-  this->declare_parameter("publish_frequency", 20.0);
-  publish_frequency = (double)this->get_parameter("publish_frequency").as_double();
-
-  this->declare_parameter("topic", "image");
-  publish_topic = this->get_parameter("topic").as_string();
-
-  this->declare_parameter("filename", "/home/maimon/eternarig_ws/src/video_interface/videos/fictrac_bee.mp4");
-  filename = this->get_parameter("filename").as_string();
 
   // check if the file can be opened, otherwise throw error
   if (FILE *tmpfile = fopen(filename.c_str(), "r"))
@@ -48,15 +40,31 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   }
 
   total_n_frames = cap.get(cv::CAP_PROP_FRAME_COUNT);
-  // get video parameters
+  int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+  int height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+  double fps = cap.get(cv::CAP_PROP_FPS);
+  publish_frequency = this->declare_parameter<double>("publish_frequency_double", fps);
+  RCLCPP_INFO(get_logger(), "movie format: h: %d, w: %d, fps %.3f, total frames: %d", height, width, fps, total_n_frames);
 
-  image_publisher = this->create_publisher<sensor_msgs::msg::Image>(publish_topic, 10);
+  size_t depth_ = rmw_qos_profile_default.depth;
+  rmw_qos_reliability_policy_t reliability_policy_ = rmw_qos_profile_default.reliability; // want this to be reliable
+  rmw_qos_history_policy_t history_policy_ = rmw_qos_profile_default.history;             // want this to be keep all
+  auto qos = rclcpp::QoS(rclcpp::QoSInitialization(history_policy_, depth_));
+  qos.reliability(reliability_policy_);
 
+  image_publisher = this->create_publisher<sensor_msgs::msg::Image>(publish_topic, qos);
   dt_ms = (int)(1000.0 / publish_frequency);
   image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
 
-  RCLCPP_INFO(this->get_logger(), "Config found: %i", config_found);
-  RCLCPP_INFO(this->get_logger(), "Image publisher has been started");
+  if (!config_found)
+  {
+    RCLCPP_WARN(this->get_logger(), "No configuration file linked, loading default parameters");
+  }
+  else
+  {
+    RCLCPP_INFO(this->get_logger(), "Configuration file found");
+  }
+  RCLCPP_INFO(get_logger(), "Playing video from %s", filename.c_str());
 }
 
 void ImagePublisherNode::publishImage()
@@ -72,18 +80,29 @@ void ImagePublisherNode::publishImage()
     return;
   }
 
-  cv::Mat frame;
-  cap >> frame;
-
+  cap.read(frame);
   if (frame.empty())
   {
     RCLCPP_WARN(get_logger(), "could not read image");
     return;
   }
 
-  // convert_frame_to_message(original, *img_msg);
-  convert_frame_to_message(frame, *img_msg);
+  if (publish_as_color)
+  {
+    convert_frame_to_message(frame, *img_msg);
+  }
+  else
+  {
+    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+    convert_frame_to_message(gray, *img_msg);
+  }
+
   image_publisher->publish(std::move(*img_msg));
+
+  double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
+  img_msg->header.stamp.sec = std::floor(vtime / 1000.0);
+  img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);
+  count++;
 }
 
 void ImagePublisherNode::convert_frame_to_message(

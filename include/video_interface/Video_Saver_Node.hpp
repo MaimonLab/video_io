@@ -13,8 +13,12 @@ private:
 
     bool config_found;
     bool first_message;
+    int fourcc;
+    double output_fps;
+    std::string file_extension;
     std::string publish_topic;
     std::string output_filename;
+    std::string codec;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     cv::VideoWriter outputVideo;
 };
