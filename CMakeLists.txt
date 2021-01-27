@@ -24,9 +24,9 @@ include_directories(include/video_interface)
 
 add_library(color_encoding SHARED
   src/color_encoding.cpp )
-ament_target_dependencies(color_encoding OpenCV)
+# ament_target_dependencies(color_encoding OpenCV)
 target_compile_definitions(color_encoding
-  PRIVATE "VIDEO_PLAYER_BUILDING_DLL")
+  PUBLIC "VIDEO_PLAYER_BUILDING_DLL")
 
 
 add_executable(video_player src/video_player.cpp)
@@ -40,13 +40,17 @@ ament_target_dependencies(
   OpenCV
   sensor_msgs
 )
-target_link_libraries(video_player color_encoding)
+target_link_libraries(video_player 
+  color_encoding
+)
 
 add_executable(video_saver src/video_saver.cpp)
 target_include_directories(video_saver PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_link_libraries(video_saver color_encoding)
+target_link_libraries(video_saver 
+  color_encoding
+)
 
 ament_target_dependencies(
   video_saver 
@@ -58,10 +62,8 @@ ament_target_dependencies(
 
 install(TARGETS
   color_encoding
-  # trackmovements
-  ARCHIVE DESTINATION lib/${PROJECT_NAME}
-  LIBRARY DESTINATION lib/${PROJECT_NAME}
-  RUNTIME DESTINATION bin/${PROJECT_NAME})
+  ARCHIVE DESTINATION lib
+)
 
 install(TARGETS 
   video_player

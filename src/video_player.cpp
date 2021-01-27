@@ -11,7 +11,7 @@
 #include "cv_bridge/cv_bridge.h"
 
 #include "Video_Publisher_Node.hpp"
-#include "color_encoding.hpp"
+#include "video_interface/color_encoding.h"
 
 ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 {
