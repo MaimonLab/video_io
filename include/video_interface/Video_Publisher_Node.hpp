@@ -17,6 +17,7 @@ private:
     int dt_ms;
     int total_n_frames;
     int count;
+    int start_frame;
     double publish_frequency;
     std::string filename;
     std::string publish_topic;

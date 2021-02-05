@@ -51,9 +51,22 @@ target_include_directories(video_saver PUBLIC
 target_link_libraries(video_saver 
   color_encoding
 )
-
 ament_target_dependencies(
   video_saver 
+  rclcpp 
+  OpenCV
+  sensor_msgs
+)
+
+add_executable(multithread_video_saver src/multithread_video_saver.cpp)
+target_include_directories(multithread_video_saver PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(multithread_video_saver 
+  color_encoding
+)
+ament_target_dependencies(
+  multithread_video_saver 
   rclcpp 
   OpenCV
   sensor_msgs
@@ -68,6 +81,7 @@ install(TARGETS
 install(TARGETS 
   video_player
   video_saver
+  multithread_video_saver
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY

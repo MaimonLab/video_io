@@ -21,6 +21,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   publish_topic = this->declare_parameter<std::string>("topic", "image");
   filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_interface/videos/fictrac_bee.mp4");
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
+  start_frame = this->declare_parameter<int>("start_frame", 0);
 
   count = 0;
 
@@ -45,6 +46,9 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   double fps = cap.get(cv::CAP_PROP_FPS);
   publish_frequency = this->declare_parameter<double>("publish_frequency_double", fps);
   RCLCPP_INFO(get_logger(), "movie format: h: %d, w: %d, fps %.3f, total frames: %d", height, width, fps, total_n_frames);
+
+  // set start frame
+  cap.set(cv::CAP_PROP_POS_FRAMES, start_frame);
 
   size_t depth_ = rmw_qos_profile_default.depth;
   rmw_qos_reliability_policy_t reliability_policy_ = rmw_qos_profile_default.reliability; // want this to be reliable
@@ -100,6 +104,8 @@ void ImagePublisherNode::publishImage()
   image_publisher->publish(std::move(*img_msg));
 
   double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
+  RCLCPP_INFO(get_logger(), "Play count: %d", count);
+  img_msg->header.frame_id = std::to_string(count);
   img_msg->header.stamp.sec = std::floor(vtime / 1000.0);
   img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);
   count++;
