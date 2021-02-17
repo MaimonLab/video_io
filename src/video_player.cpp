@@ -100,11 +100,13 @@ void ImagePublisherNode::publishImage()
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
     convert_frame_to_message(gray, *img_msg);
   }
+  img_msg->header.frame_id = std::to_string(count);
+  img_msg->header.stamp = this->get_clock()->now();
 
   image_publisher->publish(std::move(*img_msg));
 
   double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
-  RCLCPP_INFO(get_logger(), "Play count: %d", count);
+  // RCLCPP_INFO(get_logger(), "Play count: %d", count);
   img_msg->header.frame_id = std::to_string(count);
   img_msg->header.stamp.sec = std::floor(vtime / 1000.0);
   img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);

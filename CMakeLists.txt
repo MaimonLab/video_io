@@ -81,7 +81,7 @@ install(TARGETS
 install(TARGETS 
   video_player
   video_saver
-  multithread_video_saver
+#  multithread_video_saver
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
