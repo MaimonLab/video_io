@@ -7,6 +7,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/int64.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/temperature.hpp"
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
 
@@ -22,6 +23,9 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_interface/videos/fictrac_bee.mp4");
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
   start_frame = this->declare_parameter<int>("start_frame", 0);
+
+  publish_latency = this->declare_parameter<bool>("publish_latency", true);
+  latency_topic_name = this->declare_parameter<std::string>("latency_topic_name", "/video_player/rigX/latency");
 
   count = 0;
 
@@ -59,6 +63,11 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   image_publisher = this->create_publisher<sensor_msgs::msg::Image>(publish_topic, qos);
   dt_ms = (int)(1000.0 / publish_frequency);
   image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
+
+  if (publish_latency)
+  {
+    latency_publisher = this->create_publisher<sensor_msgs::msg::Temperature>(latency_topic_name, qos);
+  }
 
   if (!config_found)
   {
@@ -105,12 +114,22 @@ void ImagePublisherNode::publishImage()
 
   image_publisher->publish(std::move(*img_msg));
 
-  double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
+  // double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
   // RCLCPP_INFO(get_logger(), "Play count: %d", count);
   img_msg->header.frame_id = std::to_string(count);
-  img_msg->header.stamp.sec = std::floor(vtime / 1000.0);
-  img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);
+  // img_msg->header.stamp.sec = std::floor(vtime / 1000.0);
+  // img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);
   count++;
+
+  if (publish_latency)
+  {
+    sensor_msgs::msg::Temperature latency_msg;
+    latency_msg.header = img_msg->header;
+    int64_t image_timestamp = img_msg->header.stamp.sec * 1e9 + img_msg->header.stamp.nanosec;
+    int64_t current_timestamp = (int64_t)get_clock()->now().nanoseconds();
+    latency_msg.temperature = current_timestamp - image_timestamp;
+    this->latency_publisher->publish(latency_msg);
+  }
 }
 
 void ImagePublisherNode::convert_frame_to_message(
