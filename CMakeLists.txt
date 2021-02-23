@@ -17,6 +17,8 @@ find_package(rclcpp REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(fic_trac REQUIRED)
+# find_package(fic_trac REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(include/video_interface)
@@ -39,6 +41,7 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
+  fic_trac
 )
 target_link_libraries(video_player 
   color_encoding
@@ -56,6 +59,7 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
+  # fic_trac
 )
 
 add_executable(multithread_video_saver src/multithread_video_saver.cpp)

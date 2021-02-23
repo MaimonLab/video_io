@@ -7,7 +7,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/int64.hpp"
 #include "sensor_msgs/msg/image.hpp"
-#include "sensor_msgs/msg/temperature.hpp"
+#include "fic_trac/msg/latency.hpp"
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
 
@@ -25,7 +25,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   start_frame = this->declare_parameter<int>("start_frame", 0);
 
   publish_latency = this->declare_parameter<bool>("publish_latency", true);
-  latency_topic_name = this->declare_parameter<std::string>("latency_topic_name", "/video_player/rigX/latency");
+  latency_topic_name = this->declare_parameter<std::string>("latency_topic", "/video_player/rigX/latency");
 
   count = 0;
 
@@ -66,7 +66,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 
   if (publish_latency)
   {
-    latency_publisher = this->create_publisher<sensor_msgs::msg::Temperature>(latency_topic_name, qos);
+    latency_publisher = this->create_publisher<fic_trac::msg::Latency>(latency_topic_name, qos);
   }
 
   if (!config_found)
@@ -123,11 +123,11 @@ void ImagePublisherNode::publishImage()
 
   if (publish_latency)
   {
-    sensor_msgs::msg::Temperature latency_msg;
+    fic_trac::msg::Latency latency_msg;
     latency_msg.header = img_msg->header;
     int64_t image_timestamp = img_msg->header.stamp.sec * 1e9 + img_msg->header.stamp.nanosec;
     int64_t current_timestamp = (int64_t)get_clock()->now().nanoseconds();
-    latency_msg.temperature = current_timestamp - image_timestamp;
+    latency_msg.latency_ms = (float)(current_timestamp - image_timestamp) / 1e6;
     this->latency_publisher->publish(latency_msg);
   }
 }
