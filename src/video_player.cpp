@@ -7,6 +7,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/int64.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "fic_trac/msg/latency.hpp"
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
 
@@ -21,6 +22,10 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   publish_topic = this->declare_parameter<std::string>("topic", "image");
   filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_interface/videos/fictrac_bee.mp4");
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
+  start_frame = this->declare_parameter<int>("start_frame", 0);
+
+  publish_latency = this->declare_parameter<bool>("publish_latency", true);
+  latency_topic_name = this->declare_parameter<std::string>("latency_topic", "/video_player/rigX/latency");
 
   count = 0;
 
@@ -46,6 +51,9 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   publish_frequency = this->declare_parameter<double>("publish_frequency_double", fps);
   RCLCPP_INFO(get_logger(), "movie format: h: %d, w: %d, fps %.3f, total frames: %d", height, width, fps, total_n_frames);
 
+  // set start frame
+  cap.set(cv::CAP_PROP_POS_FRAMES, start_frame);
+
   size_t depth_ = rmw_qos_profile_default.depth;
   rmw_qos_reliability_policy_t reliability_policy_ = rmw_qos_profile_default.reliability; // want this to be reliable
   rmw_qos_history_policy_t history_policy_ = rmw_qos_profile_default.history;             // want this to be keep all
@@ -55,6 +63,11 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   image_publisher = this->create_publisher<sensor_msgs::msg::Image>(publish_topic, qos);
   dt_ms = (int)(1000.0 / publish_frequency);
   image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
+
+  if (publish_latency)
+  {
+    latency_publisher = this->create_publisher<fic_trac::msg::Latency>(latency_topic_name, qos);
+  }
 
   if (!config_found)
   {
@@ -96,13 +109,27 @@ void ImagePublisherNode::publishImage()
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
     convert_frame_to_message(gray, *img_msg);
   }
+  img_msg->header.frame_id = std::to_string(count);
+  img_msg->header.stamp = this->get_clock()->now();
 
   image_publisher->publish(std::move(*img_msg));
 
-  double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
-  img_msg->header.stamp.sec = std::floor(vtime / 1000.0);
-  img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);
+  // double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
+  // RCLCPP_INFO(get_logger(), "Play count: %d", count);
+  img_msg->header.frame_id = std::to_string(count);
+  // img_msg->header.stamp.sec = std::floor(vtime / 1000.0);
+  // img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);
   count++;
+
+  if (publish_latency)
+  {
+    fic_trac::msg::Latency latency_msg;
+    latency_msg.header = img_msg->header;
+    int64_t image_timestamp = img_msg->header.stamp.sec * 1e9 + img_msg->header.stamp.nanosec;
+    int64_t current_timestamp = (int64_t)get_clock()->now().nanoseconds();
+    latency_msg.latency_ms = (float)(current_timestamp - image_timestamp) / 1e6;
+    this->latency_publisher->publish(latency_msg);
+  }
 }
 
 void ImagePublisherNode::convert_frame_to_message(

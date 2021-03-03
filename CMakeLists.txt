@@ -17,6 +17,8 @@ find_package(rclcpp REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(fic_trac REQUIRED)
+# find_package(fic_trac REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(include/video_interface)
@@ -39,6 +41,7 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
+  fic_trac
 )
 target_link_libraries(video_player 
   color_encoding
@@ -51,9 +54,23 @@ target_include_directories(video_saver PUBLIC
 target_link_libraries(video_saver 
   color_encoding
 )
-
 ament_target_dependencies(
   video_saver 
+  rclcpp 
+  OpenCV
+  sensor_msgs
+  # fic_trac
+)
+
+add_executable(multithread_video_saver src/multithread_video_saver.cpp)
+target_include_directories(multithread_video_saver PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(multithread_video_saver 
+  color_encoding
+)
+ament_target_dependencies(
+  multithread_video_saver 
   rclcpp 
   OpenCV
   sensor_msgs
@@ -68,6 +85,7 @@ install(TARGETS
 install(TARGETS 
   video_player
   video_saver
+#  multithread_video_saver
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
