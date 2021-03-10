@@ -12,7 +12,7 @@
 #include "cv_bridge/cv_bridge.h"
 
 #include "Video_Publisher_Node.hpp"
-#include "video_interface/color_encoding.h"
+#include "video_io/color_encoding.h"
 
 ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 {
@@ -20,7 +20,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   config_found = this->declare_parameter<bool>("config_found", false);
   loop_play = this->declare_parameter<bool>("loop_play", false);
   publish_topic = this->declare_parameter<std::string>("topic", "image");
-  filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_interface/videos/fictrac_bee.mp4");
+  filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
   start_frame = this->declare_parameter<int>("start_frame", 0);
 

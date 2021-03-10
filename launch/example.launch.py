@@ -8,10 +8,10 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     config = os.path.join(
-        get_package_share_directory("video_interface"), "config", "example.yaml"
+        get_package_share_directory("video_io"), "config", "example.yaml"
     )
     video_player = Node(
-        package="video_interface",
+        package="video_io",
         executable="video_player",
         name="video_player1",
         parameters=[config],
@@ -19,7 +19,7 @@ def generate_launch_description():
     ld.add_action(video_player)
 
     video_saver = Node(
-        package="video_interface",
+        package="video_io",
         executable="video_saver",
         name="video_saver1",
         parameters=[config],
@@ -27,7 +27,7 @@ def generate_launch_description():
     ld.add_action(video_saver)
 
     multithread_video_saver = Node(
-        package="video_interface",
+        package="video_io",
         executable="multithread_video_saver",
         name="video_saver2",
         parameters=[config],

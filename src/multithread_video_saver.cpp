@@ -4,14 +4,14 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/image.hpp"
-#include "video_interface/color_encoding.h"
+#include "video_io/color_encoding.h"
 #include <deque>
 
 #include <chrono>
 
 #include "cv_bridge/cv_bridge.h"
 
-#include "video_interface/multithread_video_saver.hpp"
+#include "video_io/multithread_video_saver.hpp"
 
 const std::vector<std::vector<std::string>> CODECS = {
     {"h264", "H264", "avi"},
@@ -26,7 +26,7 @@ MultithreadVideoSaverNode::MultithreadVideoSaverNode(const rclcpp::NodeOptions &
     first_message = false;
     config_found = this->declare_parameter<bool>("config_found", false);
     publish_topic = this->declare_parameter<std::string>("topic", "image");
-    output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/eternarig_ws/src/video_interface/data/test_x");
+    output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/eternarig_ws/src/video_io/data/test_x");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
 

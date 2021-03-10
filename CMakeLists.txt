@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(video_interface)
+project(video_io)
 
 
 # Default to C++14
@@ -21,7 +21,7 @@ find_package(fic_trac REQUIRED)
 # find_package(fic_trac REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(include/video_interface)
+include_directories(include/video_io)
 
 
 add_library(color_encoding SHARED

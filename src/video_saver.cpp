@@ -11,7 +11,7 @@
 #include "sensor_msgs/msg/image.hpp"
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
-#include "video_interface/color_encoding.h"
+#include "video_io/color_encoding.h"
 
 #include "Video_Saver_Node.hpp"
 using std::placeholders::_1;
@@ -28,7 +28,7 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     first_message = false;
     config_found = this->declare_parameter<bool>("config_found", false);
     publish_topic = this->declare_parameter<std::string>("topic", "image");
-    output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/eternarig_ws/src/video_interface/data/test_x");
+    output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/eternarig_ws/src/video_io/data/test_x");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
 
