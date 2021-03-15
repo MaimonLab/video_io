@@ -21,8 +21,8 @@ private:
     int start_frame;
     double publish_frequency;
     std::string filename;
-    std::string publish_topic;
-    std::string latency_topic_name;
+    std::string image_topic;
+    std::string latency_topic;
     cv::VideoCapture cap;
     cv::Mat frame, gray;
     rclcpp::TimerBase::SharedPtr image_timer;

@@ -19,13 +19,13 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 
   config_found = this->declare_parameter<bool>("config_found", false);
   loop_play = this->declare_parameter<bool>("loop_play", false);
-  publish_topic = this->declare_parameter<std::string>("topic", "image");
+  image_topic = this->declare_parameter<std::string>("image_topic", "image");
   filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
   start_frame = this->declare_parameter<int>("start_frame", 0);
 
   publish_latency = this->declare_parameter<bool>("publish_latency", true);
-  latency_topic_name = this->declare_parameter<std::string>("latency_topic", "/video_player/rigX/latency");
+  latency_topic = this->declare_parameter<std::string>("latency_topic", "/video_player/rigX/latency");
 
   count = 0;
 
@@ -60,13 +60,13 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   auto qos = rclcpp::QoS(rclcpp::QoSInitialization(history_policy_, depth_));
   qos.reliability(reliability_policy_);
 
-  image_publisher = this->create_publisher<sensor_msgs::msg::Image>(publish_topic, qos);
+  image_publisher = this->create_publisher<sensor_msgs::msg::Image>(image_topic, qos);
   dt_ms = (int)(1000.0 / publish_frequency);
   image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
 
   if (publish_latency)
   {
-    latency_publisher = this->create_publisher<fic_trac::msg::Latency>(latency_topic_name, qos);
+    latency_publisher = this->create_publisher<fic_trac::msg::Latency>(latency_topic, qos);
   }
 
   if (!config_found)

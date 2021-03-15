@@ -25,7 +25,7 @@ MultithreadVideoSaverNode::MultithreadVideoSaverNode(const rclcpp::NodeOptions &
 {
     first_message = false;
     config_found = this->declare_parameter<bool>("config_found", false);
-    publish_topic = this->declare_parameter<std::string>("topic", "image");
+    image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/eternarig_ws/src/video_io/data/test_x");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
@@ -68,11 +68,11 @@ MultithreadVideoSaverNode::MultithreadVideoSaverNode(const rclcpp::NodeOptions &
     int qos = 50;
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-        publish_topic, 1000, std::bind(&MultithreadVideoSaverNode::topic_callback, this, _1), sub1_opt);
+        image_topic, 1000, std::bind(&MultithreadVideoSaverNode::topic_callback, this, _1), sub1_opt);
 
     if (true)
     {
-        // m_debug_publisher = create_publisher<sensor_msgs::msg::Image>(debug_topic_name, qos);
+        // m_debug_publisher = create_publisher<sensor_msgs::msg::Image>(debug_topic, qos);
         double publish_frequency = 30;
         publish_interval_ms = (int)1000.0 / publish_frequency;
         timer_ = this->create_wall_timer(std::chrono::milliseconds(publish_interval_ms), std::bind(&MultithreadVideoSaverNode::timer_callback, this));

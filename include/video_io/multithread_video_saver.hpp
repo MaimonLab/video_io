@@ -26,7 +26,7 @@ private:
     int counter;
     double output_fps;
     std::string file_extension;
-    std::string publish_topic;
+    std::string image_topic;
     std::string output_filename;
     std::string codec;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;

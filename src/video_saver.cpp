@@ -27,7 +27,7 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
 {
     first_message = false;
     config_found = this->declare_parameter<bool>("config_found", false);
-    publish_topic = this->declare_parameter<std::string>("topic", "image");
+    image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/eternarig_ws/src/video_io/data/test_x");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
@@ -59,7 +59,7 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-        publish_topic, 50, std::bind(&ImageSaverNode::topic_callback, this, _1));
+        image_topic, 50, std::bind(&ImageSaverNode::topic_callback, this, _1));
 }
 
 void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)
