@@ -23,6 +23,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
   start_frame = this->declare_parameter<int>("start_frame", 0);
+  downsample_ratio = this->declare_parameter<double>("downsample_ratio", 1.0);
 
   publish_latency = this->declare_parameter<bool>("publish_latency", true);
   latency_topic = this->declare_parameter<std::string>("latency_topic", "/video_player/rigX/latency");
@@ -99,14 +100,23 @@ void ImagePublisherNode::publishImage()
     RCLCPP_WARN(get_logger(), "could not read image");
     return;
   }
-
-  if (publish_as_color)
+  if (downsample_ratio != 1)
   {
-    convert_frame_to_message(frame, *img_msg);
+    // Mat mat; // Input
+    cv::resize(frame, resized_frame, cvSize(0, 0), downsample_ratio, downsample_ratio);
   }
   else
   {
-    cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+    resized_frame = frame;
+  }
+
+  if (publish_as_color)
+  {
+    convert_frame_to_message(resized_frame, *img_msg);
+  }
+  else
+  {
+    cv::cvtColor(resized_frame, gray, cv::COLOR_BGR2GRAY);
     convert_frame_to_message(gray, *img_msg);
   }
   img_msg->header.frame_id = std::to_string(count);
