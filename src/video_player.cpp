@@ -7,7 +7,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/int64.hpp"
 #include "sensor_msgs/msg/image.hpp"
-#include "fic_trac/msg/latency.hpp"
+// #include "strokeflow_interfaces/msg/latency.hpp"
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
 
@@ -24,8 +24,8 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
   start_frame = this->declare_parameter<int>("start_frame", 0);
 
-  publish_latency = this->declare_parameter<bool>("publish_latency", true);
-  latency_topic = this->declare_parameter<std::string>("latency_topic", "/video_player/rigX/latency");
+  // publish_latency = this->declare_parameter<bool>("publish_latency", true);
+  // latency_topic = this->declare_parameter<std::string>("latency_topic", "/video_player/rigX/latency");
 
   count = 0;
 
@@ -64,10 +64,10 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   dt_ms = (int)(1000.0 / publish_frequency);
   image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
 
-  if (publish_latency)
-  {
-    latency_publisher = this->create_publisher<fic_trac::msg::Latency>(latency_topic, qos);
-  }
+  // if (publish_latency)
+  // {
+  //   latency_publisher = this->create_publisher<strokeflow_interfaces::msg::Latency>(latency_topic, qos);
+  // }
 
   if (!config_found)
   {
@@ -121,15 +121,15 @@ void ImagePublisherNode::publishImage()
   // img_msg->header.stamp.nanosec = std::floor((vtime / 1000.0 - std::trunc(vtime / 1000.0)) * 1000000.0);
   count++;
 
-  if (publish_latency)
-  {
-    fic_trac::msg::Latency latency_msg;
-    latency_msg.header = img_msg->header;
-    int64_t image_timestamp = img_msg->header.stamp.sec * 1e9 + img_msg->header.stamp.nanosec;
-    int64_t current_timestamp = (int64_t)get_clock()->now().nanoseconds();
-    latency_msg.latency_ms = (float)(current_timestamp - image_timestamp) / 1e6;
-    this->latency_publisher->publish(latency_msg);
-  }
+  // if (publish_latency)
+  // {
+  //   strokeflow_interfaces::msg::Latency latency_msg;
+  //   latency_msg.header = img_msg->header;
+  //   int64_t image_timestamp = img_msg->header.stamp.sec * 1e9 + img_msg->header.stamp.nanosec;
+  //   int64_t current_timestamp = (int64_t)get_clock()->now().nanoseconds();
+  //   latency_msg.latency_ms = (float)(current_timestamp - image_timestamp) / 1e6;
+  //   this->latency_publisher->publish(latency_msg);
+  // }
 }
 
 void ImagePublisherNode::convert_frame_to_message(

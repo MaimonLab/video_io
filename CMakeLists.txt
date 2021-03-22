@@ -17,8 +17,8 @@ find_package(rclcpp REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(fic_trac REQUIRED)
-# find_package(fic_trac REQUIRED)
+# find_package(strokeflow_interfaces REQUIRED)
+find_package(strokeflow_interfaces REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(include/video_io)
@@ -41,7 +41,8 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
-  fic_trac
+  strokeflow_interfaces
+  # fic_trac
 )
 target_link_libraries(video_player 
   color_encoding
