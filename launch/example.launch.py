@@ -18,21 +18,21 @@ def generate_launch_description():
     )
     ld.add_action(video_player)
 
-    video_saver = Node(
-        package="video_io",
-        executable="video_saver",
-        name="video_saver1",
-        parameters=[config],
-    )
-    ld.add_action(video_saver)
+    # video_saver = Node(
+    #     package="video_io",
+    #     executable="video_saver",
+    #     name="video_saver1",
+    #     parameters=[config],
+    # )
+    # ld.add_action(video_saver)
 
-    multithread_video_saver = Node(
-        package="video_io",
-        executable="multithread_video_saver",
-        name="video_saver2",
-        parameters=[config],
-    )
-    ld.add_action(multithread_video_saver)
+    # multithread_video_saver = Node(
+    #     package="video_io",
+    #     executable="multithread_video_saver",
+    #     name="video_saver2",
+    #     parameters=[config],
+    # )
+    # ld.add_action(multithread_video_saver)
 
     rqt_image_view = Node(
         package="rqt_image_view",

@@ -5,6 +5,7 @@ video_player1:
     loop_play: false
     image_topic: /video_player1/image
     publish_as_color: true
+    downsample_ratio: 0.25
     # filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
     filename: /home/maimon/eternarig_ws/src/video_io/videos/sample_multi_arena.m4v
     # filename: /home/maimon/eternarig_ws/src/video_io/videos/maimon_fruitfly.avi
