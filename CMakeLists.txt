@@ -35,9 +35,7 @@ target_include_directories(video_player PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 ament_target_dependencies(
-  video_player git remote add origin git@github.com:MaimonLab/eternarig_interfaces.git
-  git branch -M main
-  git push -u origin main
+  video_player
   rclcpp 
   OpenCV
   sensor_msgs
