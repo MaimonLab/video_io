@@ -19,6 +19,7 @@ private:
     std::string image_topic;
     std::string output_filename;
     std::string codec;
+    std::string experiment_folder;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     cv::VideoWriter outputVideo;
 };
