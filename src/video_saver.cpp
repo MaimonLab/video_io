@@ -29,24 +29,9 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     first_message = false;
     config_found = this->declare_parameter<bool>("config_found", false);
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
-    std::string part_filename = this->declare_parameter<std::string>("part_filename", "default_part_filename");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
-    experiment_folder = this->declare_parameter<std::string>("experiment_folder", "/home/maimon/strokeflow_data/experiment_xx");
-
-    // find experiment name
-    std::size_t top_folder_start_idx = experiment_folder.find_last_of("/");
-    std::string top_folder = experiment_folder.substr(top_folder_start_idx + 1);
-
-    time_t rawtime;
-    struct tm *timeinfo;
-    char buffer[80];
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    strftime(buffer, sizeof(buffer), "%Y%m%d_%H%M%S", timeinfo);
-    std::string datetime_string(buffer);
-
-    output_filename = experiment_folder + "/" + top_folder + "_" + datetime_string + "_" + part_filename;
+    output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
 
     for (auto codec_option : CODECS)
     {
@@ -68,13 +53,7 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     {
         RCLCPP_WARN(this->get_logger(), "No configuration file linked, loading default parameters");
     }
-    else
-    {
-        RCLCPP_INFO(this->get_logger(), "Configuration file found");
-    }
     RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
-
-    RCLCPP_INFO(get_logger(), "Experiment folder %s", experiment_folder.c_str());
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
         image_topic, 50, std::bind(&ImageSaverNode::topic_callback, this, _1));
