@@ -65,20 +65,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   dt_ms = (int)(1000.0 / publish_frequency);
   image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
 
-  // if (publish_latency)
-  // {
-  //   latency_publisher = this->create_publisher<strokeflow_interfaces::msg::Latency>(latency_topic, qos);
-  // }
-
-  if (!config_found)
-  {
-    RCLCPP_WARN(this->get_logger(), "No configuration file linked, loading default parameters");
-  }
-  else
-  {
-    RCLCPP_INFO(this->get_logger(), "Configuration file found");
-  }
-  RCLCPP_INFO(get_logger(), "Playing video from %s", filename.c_str());
+   RCLCPP_INFO(get_logger(), "Playing video from %s", filename.c_str());
 }
 
 void ImagePublisherNode::publishImage()

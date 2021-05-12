@@ -11,6 +11,10 @@ int encoding2mat_type(const std::string &encoding)
     {
         return CV_8UC3;
     }
+    else if (encoding == "8UC1")
+    {
+        return CV_8UC1;
+    }
     else if (encoding == "mono16")
     {
         return CV_16SC1;
