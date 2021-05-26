@@ -11,7 +11,6 @@ public:
 private:
     void topic_callback(const sensor_msgs::msg::Image::SharedPtr msg);
 
-    bool config_found;
     bool first_message;
     int fourcc;
     double output_fps;

@@ -17,7 +17,6 @@
 ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 {
 
-  config_found = this->declare_parameter<bool>("config_found", false);
   loop_play = this->declare_parameter<bool>("loop_play", false);
   image_topic = this->declare_parameter<std::string>("image_topic", "image");
   filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
@@ -70,14 +69,6 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   //   latency_publisher = this->create_publisher<strokeflow_interfaces::msg::Latency>(latency_topic, qos);
   // }
 
-  if (!config_found)
-  {
-    RCLCPP_WARN(this->get_logger(), "No configuration file linked, loading default parameters");
-  }
-  else
-  {
-    RCLCPP_INFO(this->get_logger(), "Configuration file found");
-  }
   RCLCPP_INFO(get_logger(), "Playing video from %s", filename.c_str());
 }
 

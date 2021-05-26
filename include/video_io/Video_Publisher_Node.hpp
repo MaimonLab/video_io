@@ -11,7 +11,6 @@ private:
     void publishImage();
     void convert_frame_to_message(const cv::Mat &frame, sensor_msgs::msg::Image &img_msg);
 
-    bool config_found;
     bool loop_play;
     bool publish_as_color;
     // bool publish_latency;

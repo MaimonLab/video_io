@@ -1,6 +1,5 @@
 video_player1:
   ros__parameters:
-    config_found: true
     publish_frequency_double: 30.0
     loop_play: false
     image_topic: /video_player1/image
@@ -16,7 +15,6 @@ video_player1:
 
 video_saver1:
   ros__parameters:
-    config_found: true
     output_fps_double: 30.0
     image_topic: /video_player1/image
     output_filename: /home/maimon/eternarig_ws/src/video_io/data/sample_multi_arena
@@ -28,7 +26,6 @@ video_saver1:
 
 video_saver2:
   ros__parameters:
-    config_found: true
     output_fps_double: 30.0
     image_topic: /video_player1/image
     # output_filename: /home/maimon/eternarig_ws/src/video_io/data/fictrac_bee_v2

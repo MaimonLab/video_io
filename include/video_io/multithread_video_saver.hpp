@@ -10,7 +10,7 @@
 class MultithreadVideoSaverNode : public rclcpp::Node
 {
 public:
-    MultithreadVideoSaverNode(const rclcpp::NodeOptions &options);
+    MultithreadVideoSaverNode();
     ~MultithreadVideoSaverNode();
     // ImageSaverNode();
     // ~ImageSaverNode();
@@ -20,7 +20,6 @@ private:
 
     void timer_callback();
 
-    bool config_found;
     bool first_message;
     int fourcc;
     int counter;

@@ -27,7 +27,6 @@ const std::vector<std::vector<std::string>> CODECS = {
 ImageSaverNode::ImageSaverNode() : Node("number_publisher")
 {
     first_message = false;
-    config_found = this->declare_parameter<bool>("config_found", false);
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
@@ -49,10 +48,6 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
         }
     }
 
-    if (!config_found)
-    {
-        RCLCPP_WARN(this->get_logger(), "No configuration file linked, loading default parameters");
-    }
     RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(

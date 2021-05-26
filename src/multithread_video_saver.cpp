@@ -21,10 +21,9 @@ const std::vector<std::vector<std::string>> CODECS = {
 
 using std::placeholders::_1;
 
-MultithreadVideoSaverNode::MultithreadVideoSaverNode(const rclcpp::NodeOptions &options) : Node("video_saver")
+MultithreadVideoSaverNode::MultithreadVideoSaverNode() : Node("video_saver")
 {
     first_message = false;
-    config_found = this->declare_parameter<bool>("config_found", false);
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/eternarig_ws/src/video_io/data/test_x");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
@@ -45,27 +44,11 @@ MultithreadVideoSaverNode::MultithreadVideoSaverNode(const rclcpp::NodeOptions &
             file_extension = codec_option[2];
         }
     }
-
-    if (!config_found)
-    {
-        RCLCPP_WARN(this->get_logger(), "No configuration file linked, loading default parameters");
-    }
-    else
-    {
-        RCLCPP_INFO(this->get_logger(), "Configuration file found");
-    }
     RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
 
     auto sub1_opt = rclcpp::SubscriptionOptions();
     auto cb_group_sub = this->create_callback_group(rclcpp::callback_group::CallbackGroupType::MutuallyExclusive);
     sub1_opt.callback_group = cb_group_sub;
-
-    // auto qos = rclcpp::QoS(rclcpp::QoSInitialization(rmw_qos_profile_default.history, rmw_qos_profile_default.reliability));
-    // auto qos = rclcpp::QoS(rclcpp::QoSInitialization(rmw_qos_profile_default.history, rmw_qos_profile_default.depth));
-    // auto qos = rclcpp::QoS(rclcpp::QoSInitialization(rmw_qos_profile_default.history, 60);
-    // rclcpp:QoS(rclcpp::QoSInitialization(lkp))l
-    // auto qos = rclcpp::QoS(rclcpp::QoSInitialization(rmw_qos_profile_sensor_data.history, rmw_qos_profile_sensor_data.reliability));
-    int qos = 50;
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
         image_topic, 1000, std::bind(&MultithreadVideoSaverNode::topic_callback, this, _1), sub1_opt);
@@ -148,7 +131,7 @@ int main(int argc, char *argv[])
     rclcpp::init(argc, argv);
 
     rclcpp::executors::MultiThreadedExecutor executor;
-    auto node = std::make_shared<MultithreadVideoSaverNode>(rclcpp::NodeOptions());
+    auto node = std::make_shared<MultithreadVideoSaverNode>();
 
     executor.add_node(node);
     executor.spin();
