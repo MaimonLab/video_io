@@ -59,10 +59,10 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
     if (!first_message)
     {
         cv::Size S = cv::Size(msg->width, msg->height);
-        // RCLCPP_INFO(get_logger(), "encoding: %s", msg->encoding.c_str());
         bool isColor;
-        if (msg->encoding == "mono8")
+        if ((msg->encoding == "mono8") || (msg->encoding == "8UC1"))
         {
+
             isColor = false;
         }
         else
@@ -73,7 +73,6 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
         outputVideo.open(output_filename + "." + file_extension, fourcc, output_fps, S, isColor);
         first_message = true;
     }
-
     cv::Mat frame(
         msg->height, msg->width, encoding2mat_type(msg->encoding),
         const_cast<unsigned char *>(msg->data.data()), msg->step);
