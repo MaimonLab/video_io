@@ -50,8 +50,11 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
 
     RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
 
+    rclcpp::QoS qos_subscribe(50);
+    qos_subscribe.best_effort();
+
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-        image_topic, 50, std::bind(&ImageSaverNode::topic_callback, this, _1));
+        image_topic, qos_subscribe, std::bind(&ImageSaverNode::topic_callback, this, _1));
 }
 
 void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)

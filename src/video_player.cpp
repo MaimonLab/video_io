@@ -51,9 +51,9 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 
   // QoS settigns best effort for volatile data
   image_topic = this->declare_parameter<std::string>("image_topic", "image");
-  rclcpp::QoS video_qos(1);
-  video_qos.reliable();
-  image_publisher = this->create_publisher<sensor_msgs::msg::Image>(image_topic, video_qos);
+  rclcpp::QoS qos_publish(1);
+  qos_publish.reliable();
+  image_publisher = this->create_publisher<sensor_msgs::msg::Image>(image_topic, qos_publish);
 
   dt_ms = (int)(1000.0 / publish_frequency);
   image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
