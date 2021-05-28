@@ -7,7 +7,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/int64.hpp"
 #include "sensor_msgs/msg/image.hpp"
-#include "strokeflow_interfaces/msg/latency.hpp"
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
 
@@ -49,14 +48,6 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 
   // set start frame
   cap.set(cv::CAP_PROP_POS_FRAMES, start_frame);
-
-  // QoS reliable needed for plotting
-  publish_latency = this->declare_parameter<bool>("publish_latency", true);
-  latency_topic = this->declare_parameter<std::string>("latency_topic", "video_player/latency");
-  rclcpp::QoS latency_qos(1);
-  latency_qos.reliable();
-  latency_publisher = this->create_publisher<strokeflow_interfaces::msg::Latency>(latency_topic, latency_qos);
-  // latency_publisher = this->create_publisher<strokeflow_interfaces::msg::Latency>(latency_topic, rclcpp::QoS(1));
 
   // QoS settigns best effort for volatile data
   image_topic = this->declare_parameter<std::string>("image_topic", "image");
@@ -108,23 +99,13 @@ void ImagePublisherNode::publishImage()
     cv::cvtColor(resized_frame, gray, cv::COLOR_BGR2GRAY);
     convert_frame_to_message(gray, *img_msg);
   }
+
   img_msg->header.frame_id = std::to_string(count);
   img_msg->header.stamp = this->get_clock()->now();
 
   image_publisher->publish(std::move(*img_msg));
 
-  double vtime = cap.get(cv::CAP_PROP_POS_MSEC);
   count++;
-
-  if (publish_latency)
-  {
-    strokeflow_interfaces::msg::Latency latency_msg;
-    latency_msg.header = img_msg->header;
-    int64_t image_timestamp = img_msg->header.stamp.sec * 1e9 + img_msg->header.stamp.nanosec;
-    int64_t current_timestamp = (int64_t)get_clock()->now().nanoseconds();
-    latency_msg.latency_ms = (float)(current_timestamp - image_timestamp) / 1e6;
-    this->latency_publisher->publish(latency_msg);
-  }
 }
 
 void ImagePublisherNode::convert_frame_to_message(
