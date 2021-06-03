@@ -13,6 +13,8 @@ private:
 
     bool first_message;
     int fourcc;
+    int record_every_nth_frame;
+    int skip_counter;
     double output_fps;
     std::string file_extension;
     std::string image_topic;

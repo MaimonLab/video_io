@@ -4,6 +4,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include <iomanip>
+#include <sstream>
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/int64.hpp"
 #include "sensor_msgs/msg/image.hpp"
@@ -13,6 +15,42 @@
 #include "Video_Publisher_Node.hpp"
 #include "video_io/color_encoding.h"
 
+// std::string get_time()
+// {
+//   using namespace std::chrono;
+//   // auto now = time_point_cast<milliseconds>(system_clock::now());
+
+//   auto t = std::time(nullptr);
+//   auto tm = *std::localtime(&t);
+//   return std::put_time(&tm, "%d-%m-%Y %H-%M-%S").tostring();
+//   // return date::format("%T", now);
+// }
+
+std::string time_in_HH_MM_SS_MMM()
+{
+  using namespace std::chrono;
+
+  // get current time
+  auto now = system_clock::now();
+
+  // get number of milliseconds for the current second
+  // (remainder after division into seconds)
+  auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+  // convert to std::time_t in order to convert to std::tm (broken time)
+  auto timer = system_clock::to_time_t(now);
+
+  // convert to broken time
+  std::tm bt = *std::localtime(&timer);
+
+  std::ostringstream oss;
+
+  oss << std::put_time(&bt, "%H:%M:%S"); // HH:MM:SS
+  oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
+
+  return oss.str();
+}
+
 ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
 {
 
@@ -21,6 +59,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
   start_frame = this->declare_parameter<int>("start_frame", 0);
   downsample_ratio = this->declare_parameter<double>("downsample_ratio", 1.0);
+  add_timestamp = this->declare_parameter<bool>("add_timestamp", false);
 
   count = 0;
 
@@ -40,8 +79,8 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   }
 
   total_n_frames = cap.get(cv::CAP_PROP_FRAME_COUNT);
-  int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-  int height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+  width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+  height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
   double fps = cap.get(cv::CAP_PROP_FPS);
   publish_frequency = this->declare_parameter<double>("publish_frequency_double", fps);
   RCLCPP_INFO(get_logger(), "movie format: h: %d, w: %d, fps %.3f, total frames: %d", height, width, fps, total_n_frames);
@@ -88,6 +127,17 @@ void ImagePublisherNode::publishImage()
   else
   {
     resized_frame = frame;
+  }
+
+  if (add_timestamp)
+  {
+    // Now use puttext() to do a white S
+    int fontFace = cv::FONT_HERSHEY_SIMPLEX;
+    double fontScale = 1.0;
+    std::string timestamp = time_in_HH_MM_SS_MMM();
+    // resized_frame[];
+    cv::rectangle(resized_frame, cv::Point(width - 195, height - 30), cv::Point(width, height), cv::Scalar(0, 0, 0), cv::FILLED, cv::LINE_8);
+    cv::putText(resized_frame, timestamp, cv::Point(width - 190, height - 5), fontFace, fontScale, cv::Scalar(255, 255, 255), 1, false);
   }
 
   if (publish_as_color)

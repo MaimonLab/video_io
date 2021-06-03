@@ -4,9 +4,11 @@ video_player1:
     loop_play: false
     image_topic: /video_player1/image
     publish_as_color: true
-    downsample_ratio: 0.25
-    # filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
-    filename: /home/maimon/eternarig_ws/src/video_io/videos/sample_multi_arena.m4v
+    add_timestamp: true
+    # downsample_ratio: 0.25
+    # downsample_ratio: 0.25
+    filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
+    # filename: /home/maimon/eternarig_ws/src/video_io/videos/sample_multi_arena.m4v
     # filename: /home/maimon/eternarig_ws/src/video_io/videos/maimon_fruitfly.avi
     # filename: /home/maimon/eternarig_ws/src/video_io/videos/topview_4arena.avi
     # filename: /home/maimon/src/record_h264/video_20200901_033706_cam18517933-000.mp4
@@ -17,8 +19,9 @@ video_saver1:
   ros__parameters:
     output_fps_double: 30.0
     image_topic: /video_player1/image
-    output_filename: /home/maimon/eternarig_ws/src/video_io/data/sample_multi_arena
-    # output_filename: /home/maimon/eternarig_ws/src/video_io/data/fictrac_bee
+    # output_filename: /home/maimon/eternarig_ws/src/video_io/data/sample_multi_arena
+    output_filename: /home/maimon/eternarig_ws/src/video_io/data/fictrac_bee_skippedframes
+    record_every_nth_frame: 5
     codec: mjpg # choose from [xvid, mjpg, h264, raw]
     # output_filename: /home/maimon/eternarig_ws/src/video_io/data/fruitfly_compressed
     # output_filename: /home/maimon/eternarig_ws/src/video_io/data/topview_4arena

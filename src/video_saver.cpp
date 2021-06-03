@@ -30,6 +30,8 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
+    record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 0);
+    skip_counter = 0;
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
 
     for (auto codec_option : CODECS)
@@ -76,11 +78,21 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
         outputVideo.open(output_filename + "." + file_extension, fourcc, output_fps, S, isColor);
         first_message = true;
     }
-    cv::Mat frame(
-        msg->height, msg->width, encoding2mat_type(msg->encoding),
-        const_cast<unsigned char *>(msg->data.data()), msg->step);
+    skip_counter += 1;
+    // RCLCPP_INFO(get_logger(), "skip_counter %i", skip_counter);
+    if (skip_counter == record_every_nth_frame)
+    {
+        // RCLCPP_INFO(get_logger(), "record a frame");
+        cv::Mat frame(
+            msg->height, msg->width, encoding2mat_type(msg->encoding),
+            const_cast<unsigned char *>(msg->data.data()), msg->step);
 
-    outputVideo.write(frame);
+        outputVideo.write(frame);
+    }
+    if (skip_counter >= record_every_nth_frame)
+    {
+        skip_counter = 0;
+    }
 }
 
 ImageSaverNode::~ImageSaverNode()

@@ -14,8 +14,11 @@ private:
     bool loop_play;
     bool publish_as_color;
     bool publish_latency;
+    bool add_timestamp;
     int dt_ms;
     int total_n_frames;
+    int width;
+    int height;
     int count;
     int start_frame;
     double publish_frequency;
