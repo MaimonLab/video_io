@@ -29,7 +29,7 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
 {
     first_message = false;
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
-    std::string burst_record_commands_topic = this->declare_parameter<std::string>("burst_record_commands_topic", "video_player/burst_record_commands_topic");
+    std::string burst_record_command_topic = this->declare_parameter<std::string>("burst_record_command_topic", "video_player/burst_record_command_topic");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
     record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 0);
@@ -65,7 +65,7 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     rclcpp::QoS qos_burst_subscription(10);
     qos_burst_subscription.best_effort();
 
-    burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_commands_topic, qos_burst_subscription, std::bind(&ImageSaverNode::burst_callback, this, _1));
+    burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&ImageSaverNode::burst_callback, this, _1));
 }
 
 void ImageSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)

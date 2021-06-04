@@ -14,9 +14,9 @@ public:
     MinimalPublisher()
         : Node("minimal_publisher")
     {
-        std::string burst_record_commands_topic = this->declare_parameter<std::string>("burst_record_commands_topic", "video_player/burst_record_commands");
+        std::string burst_record_command_topic = this->declare_parameter<std::string>("burst_record_command_topic", "video_player/burst_record_commands");
         record_duration = this->declare_parameter<double>("record_duration_s", 1.0);
-        publisher_ = this->create_publisher<video_io::msg::BurstRecordCommand>(burst_record_commands_topic, 10);
+        publisher_ = this->create_publisher<video_io::msg::BurstRecordCommand>(burst_record_command_topic, 10);
 
         double burst_interval_s = this->declare_parameter<double>("burst_interval_s", 10.0);
         int burst_interval_ms = (int)(burst_interval_s * 1000);
