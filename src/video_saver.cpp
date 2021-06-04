@@ -30,7 +30,7 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
-    record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 0);
+    record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 1);
     skip_counter = 0;
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
 

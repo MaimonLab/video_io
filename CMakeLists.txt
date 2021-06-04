@@ -100,6 +100,21 @@ ament_target_dependencies(
   sensor_msgs
 )
 
+add_executable(simple_burst_publisher src/simple_burst_publisher.cpp)
+target_include_directories(simple_burst_publisher PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+rosidl_target_interfaces(simple_burst_publisher ${PROJECT_NAME} "rosidl_typesupport_cpp")
+# target_link_libraries(burst_video_saver 
+#   color_encoding
+# )
+ament_target_dependencies(
+  simple_burst_publisher 
+  rclcpp 
+  # OpenCV
+  # sensor_msgs
+)
+
 install(TARGETS
   color_encoding
   ARCHIVE DESTINATION lib
@@ -109,6 +124,7 @@ install(TARGETS
   video_player
   video_saver
   burst_video_saver
+  simple_burst_publisher
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
