@@ -62,7 +62,10 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
         image_topic, qos_subscribe, std::bind(&ImageSaverNode::topic_callback, this, _1));
 
-    burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_subscribe, std::bind(&ImageSaverNode::burst_callback, this, _1));
+    rclcpp::QoS qos_burst_subscription(10);
+    qos_burst_subscription.best_effort();
+
+    burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&ImageSaverNode::burst_callback, this, _1));
 }
 
 void ImageSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)
@@ -72,7 +75,7 @@ void ImageSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::Sha
     time_at_start_burst = this->now().nanoseconds();
     time_at_end_burst = time_at_start_burst + int64_t(1e9 * record_duration);
 
-    RCLCPP_INFO(get_logger(), "Burst received for %f, Start time (timestamp): %zu", record_duration, time_at_start_burst);
+    // RCLCPP_INFO(get_logger(), "Burst received for %f, Start time (timestamp): %zu", record_duration, time_at_start_burst);
     // RCLCPP_INFO(get_logger(), "Start time, %zu", time_at_start_burst);
     // RCLCPP_INFO(get_logger(), "End time  , %zu", time_at_end_burst);
 }
