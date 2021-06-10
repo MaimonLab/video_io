@@ -22,10 +22,12 @@ private:
     std::string file_extension;
     std::string image_topic;
     std::string output_filename;
+    std::string output_csv_filename;
     std::string codec;
     std::string experiment_folder;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     rclcpp::Subscription<video_io::msg::BurstRecordCommand>::SharedPtr burst_subscription;
     cv::VideoWriter outputVideo;
+    std::ofstream csv_file;
 };
 #endif // _VIDEO_PUBLISHER_NODE_H

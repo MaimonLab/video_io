@@ -14,8 +14,12 @@
 #include "cv_bridge/cv_bridge.h"
 #include "video_io/color_encoding.h"
 
+#include <iostream>
+#include <fstream>
+
 #include "video_io/msg/burst_record_command.hpp"
 #include "burst_video_saver.hpp"
+
 using std::placeholders::_1;
 
 /// OpenCV codecs for video writing
@@ -37,6 +41,12 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
     time_at_start_burst = 0;
     time_at_end_burst = 0;
+
+    // RCLCPP_INFO(get_logger(), "Output csv %s", output_csv_filename.c_str());
+    output_csv_filename = output_filename + "_timestamps.csv";
+    csv_file.open(output_csv_filename, std::ios::out);
+    csv_file << "frame_id, timestamp\n";
+    csv_file.close();
 
     for (auto codec_option : CODECS)
     {
@@ -113,6 +123,13 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
             const_cast<unsigned char *>(msg->data.data()), msg->step);
 
         outputVideo.write(frame);
+
+        csv_file.open(output_csv_filename, std::ios::app);
+        csv_file << msg->header.frame_id;
+        csv_file << ", ";
+        csv_file << (int64)(msg->header.stamp.sec * 1e9 + msg->header.stamp.nanosec);
+        csv_file << "\n";
+        csv_file.close();
     }
     if (skip_counter >= record_every_nth_frame)
     {
