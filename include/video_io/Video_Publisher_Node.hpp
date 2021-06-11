@@ -2,10 +2,10 @@
 #ifndef _VIDEO_PUBLISHER_NODE_H_
 #define _VIDEO_PUBLISHER_NODE_H_
 
-class ImagePublisherNode : public rclcpp::Node
+class VideoPublisherNode : public rclcpp::Node
 {
 public:
-    ImagePublisherNode();
+    VideoPublisherNode();
 
 private:
     void publishImage();
@@ -15,6 +15,7 @@ private:
     bool publish_as_color;
     bool publish_latency;
     bool add_timestamp;
+    bool verbose_logging;
     int dt_ms;
     int total_n_frames;
     int width;

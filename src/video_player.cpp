@@ -15,19 +15,22 @@
 #include "Video_Publisher_Node.hpp"
 #include "video_io/color_encoding.h"
 
-// std::string get_time()
-// {
-//   using namespace std::chrono;
-//   // auto now = time_point_cast<milliseconds>(system_clock::now());
+std::string datetime_str()
+{
+  // get datetime string
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
 
-//   auto t = std::time(nullptr);
-//   auto tm = *std::localtime(&t);
-//   return std::put_time(&tm, "%d-%m-%Y %H-%M-%S").tostring();
-//   // return date::format("%T", now);
-// }
+  std::ostringstream oss;
+  oss << std::put_time(&tm, "%y/%m/%d %H:%M:%S");
+  auto str = oss.str();
+
+  return str;
+}
 
 std::string time_in_HH_MM_SS_MMM()
 {
+  // get time string in milliseconds
   using namespace std::chrono;
 
   // get current time
@@ -51,7 +54,7 @@ std::string time_in_HH_MM_SS_MMM()
   return oss.str();
 }
 
-ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
+VideoPublisherNode::VideoPublisherNode() : Node("number_publisher")
 {
 
   loop_play = this->declare_parameter<bool>("loop_play", false);
@@ -60,6 +63,7 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   start_frame = this->declare_parameter<int>("start_frame", 0);
   downsample_ratio = this->declare_parameter<double>("downsample_ratio", 1.0);
   add_timestamp = this->declare_parameter<bool>("add_timestamp", false);
+  verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
 
   count = 0;
 
@@ -83,7 +87,11 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
   double fps = cap.get(cv::CAP_PROP_FPS);
   publish_frequency = this->declare_parameter<double>("publish_frequency_double", fps);
-  RCLCPP_INFO(get_logger(), "movie format: h: %d, w: %d, fps %.3f, total frames: %d", height, width, fps, total_n_frames);
+
+  if (verbose_logging)
+  {
+    RCLCPP_INFO(get_logger(), "movie format: h: %d, w: %d, fps %.3f, total frames: %d", height, width, fps, total_n_frames);
+  }
 
   // set start frame
   cap.set(cv::CAP_PROP_POS_FRAMES, start_frame);
@@ -95,12 +103,15 @@ ImagePublisherNode::ImagePublisherNode() : Node("number_publisher")
   image_publisher = this->create_publisher<sensor_msgs::msg::Image>(image_topic, qos_publish);
 
   dt_ms = (int)(1000.0 / publish_frequency);
-  image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&ImagePublisherNode::publishImage, this));
+  image_timer = this->create_wall_timer(std::chrono::milliseconds(dt_ms), std::bind(&VideoPublisherNode::publishImage, this));
 
-  RCLCPP_INFO(get_logger(), "Playing video from %s", filename.c_str());
+  if (verbose_logging)
+  {
+    RCLCPP_INFO(get_logger(), "Playing video from %s", filename.c_str());
+  }
 }
 
-void ImagePublisherNode::publishImage()
+void VideoPublisherNode::publishImage()
 {
 
   if (loop_play && (cap.get(cv::CAP_PROP_POS_FRAMES) == total_n_frames))
@@ -131,13 +142,14 @@ void ImagePublisherNode::publishImage()
 
   if (add_timestamp)
   {
-    // Now use puttext() to do a white S
-    int fontFace = cv::FONT_HERSHEY_SIMPLEX;
+    int fontFace = cv::FONT_HERSHEY_PLAIN;
     double fontScale = 1.0;
-    std::string timestamp = time_in_HH_MM_SS_MMM();
-    // resized_frame[];
-    cv::rectangle(resized_frame, cv::Point(width - 195, height - 30), cv::Point(width, height), cv::Scalar(0, 0, 0), cv::FILLED, cv::LINE_8);
-    cv::putText(resized_frame, timestamp, cv::Point(width - 190, height - 5), fontFace, fontScale, cv::Scalar(255, 255, 255), 1, false);
+
+    // std::string timestamp = time_in_HH_MM_SS_MMM();
+    std::string timestamp = datetime_str();
+
+    cv::rectangle(resized_frame, cv::Point(0, height - 17), cv::Point(165, height), cv::Scalar(0, 0, 0), cv::FILLED, cv::LINE_8);
+    cv::putText(resized_frame, timestamp, cv::Point(0, height - 5), fontFace, fontScale, cv::Scalar(255, 255, 255), 1, false);
   }
 
   if (publish_as_color)
@@ -158,7 +170,7 @@ void ImagePublisherNode::publishImage()
   count++;
 }
 
-void ImagePublisherNode::convert_frame_to_message(
+void VideoPublisherNode::convert_frame_to_message(
     const cv::Mat &frame, sensor_msgs::msg::Image &msg)
 {
   // copy cv information into ros message
@@ -174,7 +186,7 @@ void ImagePublisherNode::convert_frame_to_message(
 int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<ImagePublisherNode>();
+  auto node = std::make_shared<VideoPublisherNode>();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;

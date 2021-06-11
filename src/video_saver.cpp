@@ -14,6 +14,9 @@
 #include "cv_bridge/cv_bridge.h"
 #include "video_io/color_encoding.h"
 
+#include <iostream>
+#include <fstream>
+
 #include "Video_Saver_Node.hpp"
 using std::placeholders::_1;
 
@@ -24,15 +27,28 @@ const std::vector<std::vector<std::string>> CODECS = {
     {"mjpg", "MJPG", "avi"},
     {"raw", "", "avi"}};
 
-ImageSaverNode::ImageSaverNode() : Node("number_publisher")
+VideoSaverNode::VideoSaverNode() : Node("number_publisher")
 {
     first_message = false;
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
     record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 1);
-    skip_counter = 0;
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
+    verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
+
+    skip_counter = 0;
+
+    // create a csv file to log image header timestamps
+    output_csv_filename = output_filename + "_timestamps.csv";
+    csv_file.open(output_csv_filename, std::ios::out);
+    csv_file << "frame_id, timestamp\n";
+    csv_file.close();
+
+    if (verbose_logging)
+    {
+        RCLCPP_INFO(get_logger(), "Saving csv to %s", output_csv_filename.c_str());
+    }
 
     for (auto codec_option : CODECS)
     {
@@ -50,16 +66,19 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
         }
     }
 
-    RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
+    if (verbose_logging)
+    {
+        RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
+    }
 
     rclcpp::QoS qos_subscribe(50);
     qos_subscribe.best_effort();
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-        image_topic, qos_subscribe, std::bind(&ImageSaverNode::topic_callback, this, _1));
+        image_topic, qos_subscribe, std::bind(&VideoSaverNode::topic_callback, this, _1));
 }
 
-void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+void VideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
     if (!first_message)
     {
@@ -79,15 +98,19 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
         first_message = true;
     }
     skip_counter += 1;
-    // RCLCPP_INFO(get_logger(), "skip_counter %i", skip_counter);
     if (skip_counter == record_every_nth_frame)
     {
-        // RCLCPP_INFO(get_logger(), "record a frame");
         cv::Mat frame(
             msg->height, msg->width, encoding2mat_type(msg->encoding),
             const_cast<unsigned char *>(msg->data.data()), msg->step);
-
         outputVideo.write(frame);
+
+        csv_file.open(output_csv_filename, std::ios::app);
+        csv_file << msg->header.frame_id;
+        csv_file << ", ";
+        csv_file << (int64)(msg->header.stamp.sec * 1e9 + msg->header.stamp.nanosec);
+        csv_file << "\n";
+        csv_file.close();
     }
     if (skip_counter >= record_every_nth_frame)
     {
@@ -95,7 +118,7 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
     }
 }
 
-ImageSaverNode::~ImageSaverNode()
+VideoSaverNode::~VideoSaverNode()
 {
     outputVideo.release();
     cv::destroyAllWindows();
@@ -104,7 +127,7 @@ ImageSaverNode::~ImageSaverNode()
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<ImageSaverNode>();
+    auto node = std::make_shared<VideoSaverNode>();
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;
