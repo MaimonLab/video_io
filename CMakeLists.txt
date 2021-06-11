@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(video_io)
 
-
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
@@ -23,7 +22,8 @@ find_package(rosidl_default_generators REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(include/video_io)
 
-# ros2 fulltrack message
+
+# custom burst message 
 set(msg_files
   "msg/BurstRecordCommand.msg"
 )
@@ -34,18 +34,18 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 )
 ament_export_dependencies(rosidl_default_runtime)
 
+
 add_library(color_encoding SHARED
   src/color_encoding.cpp )
-# ament_target_dependencies(color_encoding OpenCV)
 target_compile_definitions(color_encoding
   PUBLIC "VIDEO_PLAYER_BUILDING_DLL")
 
 
+# video player 
 add_executable(video_player src/video_player.cpp)
 target_include_directories(video_player PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-
 ament_target_dependencies(
   video_player
   rclcpp 
@@ -56,6 +56,7 @@ target_link_libraries(video_player
   color_encoding
 )
 
+# video saver
 add_executable(video_saver src/video_saver.cpp)
 target_include_directories(video_saver PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -71,20 +72,7 @@ ament_target_dependencies(
   
 )
 
-add_executable(multithread_video_saver src/multithread_video_saver.cpp)
-target_include_directories(multithread_video_saver PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
-target_link_libraries(multithread_video_saver 
-  color_encoding
-)
-ament_target_dependencies(
-  multithread_video_saver 
-  rclcpp 
-  OpenCV
-  sensor_msgs
-)
-
+# burst video saver 
 add_executable(burst_video_saver src/burst_video_saver.cpp)
 target_include_directories(burst_video_saver PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -100,19 +88,15 @@ ament_target_dependencies(
   sensor_msgs
 )
 
+# burst publisher, for testing 
 add_executable(simple_burst_publisher src/simple_burst_publisher.cpp)
 target_include_directories(simple_burst_publisher PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 rosidl_target_interfaces(simple_burst_publisher ${PROJECT_NAME} "rosidl_typesupport_cpp")
-# target_link_libraries(burst_video_saver 
-#   color_encoding
-# )
 ament_target_dependencies(
   simple_burst_publisher 
   rclcpp 
-  # OpenCV
-  # sensor_msgs
 )
 
 install(TARGETS

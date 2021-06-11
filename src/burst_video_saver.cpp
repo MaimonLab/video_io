@@ -13,10 +13,8 @@
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
 #include "video_io/color_encoding.h"
-
 #include <iostream>
 #include <fstream>
-
 #include "video_io/msg/burst_record_command.hpp"
 #include "burst_video_saver.hpp"
 
@@ -29,20 +27,27 @@ const std::vector<std::vector<std::string>> CODECS = {
     {"mjpg", "MJPG", "avi"},
     {"raw", "", "avi"}};
 
-ImageSaverNode::ImageSaverNode() : Node("number_publisher")
+BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
 {
-    first_message = false;
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
     std::string burst_record_command_topic = this->declare_parameter<std::string>("burst_record_command_topic", "video_player/burst_record_command_topic");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
     record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 0);
-    skip_counter = 0;
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
+    verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
+
+    first_message = false;
+    skip_counter = 0;
     time_at_start_burst = 0;
     time_at_end_burst = 0;
 
-    // RCLCPP_INFO(get_logger(), "Output csv %s", output_csv_filename.c_str());
+    if (verbose_logging)
+    {
+        RCLCPP_INFO(get_logger(), "Output csv %s", output_csv_filename.c_str());
+    }
+
+    // csv file to save timestamps from image header file
     output_csv_filename = output_filename + "_timestamps.csv";
     csv_file.open(output_csv_filename, std::ios::out);
     csv_file << "frame_id, timestamp\n";
@@ -64,33 +69,39 @@ ImageSaverNode::ImageSaverNode() : Node("number_publisher")
         }
     }
 
-    RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
+    if (verbose_logging)
+    {
+        RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
+    }
 
     rclcpp::QoS qos_subscribe(50);
     qos_subscribe.best_effort();
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
-        image_topic, qos_subscribe, std::bind(&ImageSaverNode::topic_callback, this, _1));
+        image_topic, qos_subscribe, std::bind(&BurstVideoSaverNode::topic_callback, this, _1));
 
     rclcpp::QoS qos_burst_subscription(10);
     qos_burst_subscription.best_effort();
 
-    burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&ImageSaverNode::burst_callback, this, _1));
+    burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&BurstVideoSaverNode::burst_callback, this, _1));
 }
 
-void ImageSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)
+void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)
 {
     float record_duration = msg->record_duration_s;
 
     time_at_start_burst = this->now().nanoseconds();
     time_at_end_burst = time_at_start_burst + int64_t(1e9 * record_duration);
 
-    // RCLCPP_INFO(get_logger(), "Burst received for %f, Start time (timestamp): %zu", record_duration, time_at_start_burst);
-    // RCLCPP_INFO(get_logger(), "Start time, %zu", time_at_start_burst);
-    // RCLCPP_INFO(get_logger(), "End time  , %zu", time_at_end_burst);
+    if (verbose_logging)
+    {
+        RCLCPP_INFO(get_logger(), "Burst received for %f, Start time (timestamp): %zu", record_duration, time_at_start_burst);
+        RCLCPP_INFO(get_logger(), "Start time, %zu", time_at_start_burst);
+        RCLCPP_INFO(get_logger(), "End time  , %zu", time_at_end_burst);
+    }
 }
 
-void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
     if (!first_message)
     {
@@ -114,8 +125,6 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
     int64_t now_time = get_clock()->now().nanoseconds();
     bool in_burst_window = (now_time > time_at_start_burst) & (now_time < time_at_end_burst);
 
-    // RCLCPP_INFO(get_logger(), "skip_counter %i", skip_counter);
-    // if (skip_counter == record_every_nth_frame)
     if (in_burst_window)
     {
         cv::Mat frame(
@@ -137,7 +146,7 @@ void ImageSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
     }
 }
 
-ImageSaverNode::~ImageSaverNode()
+BurstVideoSaverNode::~BurstVideoSaverNode()
 {
     outputVideo.release();
     cv::destroyAllWindows();
@@ -146,7 +155,7 @@ ImageSaverNode::~ImageSaverNode()
 int main(int argc, char **argv)
 {
     rclcpp::init(argc, argv);
-    auto node = std::make_shared<ImageSaverNode>();
+    auto node = std::make_shared<BurstVideoSaverNode>();
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;

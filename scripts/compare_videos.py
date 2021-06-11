@@ -1,5 +1,7 @@
+"""Compare properties of original and saved video 
+"""
+
 import cv2
-import numpy as np
 
 
 original_video = "../videos/sample_multi_arena.m4v"
@@ -20,11 +22,6 @@ def main():
         print(
             f"{cap_name}, total frames: {total_frames}, wxh:{width}x{height}, fps: {fps}"
         )
-
-    # total_n_frames = cap.get(cv::CAP_PROP_FRAME_COUNT);
-    # int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    # int height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    # double fps = cap.get(cv::CAP_PROP_FPS);
 
 
 if __name__ == "__main__":

@@ -1,3 +1,8 @@
+/*
+These functions convert between the ROS2 image color type and opencv color types. 
+Please add an encoding type if you come across one that's missing. 
+-TLM 
+*/
 #include <string>
 #include <opencv2/core.hpp>
 

@@ -2,16 +2,17 @@
 #ifndef _VIDEO_PUBLISHER_NODE_H_
 #define _VIDEO_PUBLISHER_NODE_H_
 
-class ImageSaverNode : public rclcpp::Node
+class VideoSaverNode : public rclcpp::Node
 {
 public:
-    ImageSaverNode();
-    ~ImageSaverNode();
+    VideoSaverNode();
+    ~VideoSaverNode();
 
 private:
     void topic_callback(const sensor_msgs::msg::Image::SharedPtr msg);
 
     bool first_message;
+    bool verbose_logging;
     int fourcc;
     int record_every_nth_frame;
     int skip_counter;

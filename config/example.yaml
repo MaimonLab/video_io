@@ -1,13 +1,13 @@
-example1: 
+example1:
   example_name: basic video play/save
-  nodes_to_launch: 
-    - package: video_io 
-      executable: video_player 
+  nodes_to_launch:
+    - package: video_io
+      executable: video_player
       name: video_player
-    - package: video_io 
-      executable: video_saver 
+    - package: video_io
+      executable: video_saver
       name: video_saver
-    - package: rqt_image_view 
+    - package: rqt_image_view
       executable: rqt_image_view
       name: rqt_image_view
   video_player:
@@ -17,6 +17,7 @@ example1:
       image_topic: video_player/image
       publish_as_color: true
       add_timestamp: true
+      verbose_logging: True
       filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
   video_saver:
     ros__parameters:
@@ -24,17 +25,18 @@ example1:
       image_topic: video_player/image
       output_filename: /home/maimon/eternarig_ws/src/video_io/videos_saved/fictrac_bee_saved
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
+      verbose_logging: True
 
-example2: 
-  example_name: save every nth frame 
-  nodes_to_launch: 
-    - package: video_io 
-      executable: video_player 
+example2:
+  example_name: save every nth frame
+  nodes_to_launch:
+    - package: video_io
+      executable: video_player
       name: video_player
-    - package: video_io 
-      executable: video_saver 
+    - package: video_io
+      executable: video_saver
       name: video_saver
-    - package: rqt_image_view 
+    - package: rqt_image_view
       executable: rqt_image_view
       name: rqt_image_view
   video_player:
@@ -44,6 +46,7 @@ example2:
       image_topic: video_player/image
       publish_as_color: true
       add_timestamp: true
+      verbose_logging: True
       filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
   video_saver:
     ros__parameters:
@@ -52,17 +55,18 @@ example2:
       output_filename: /home/maimon/eternarig_ws/src/video_io/videos_saved/fictrac_bee_skippedframes
       record_every_nth_frame: 5
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
+      verbose_logging: True
 
-example3: 
+example3:
   example_name: play lower resolution video
-  nodes_to_launch: 
-    - package: video_io 
-      executable: video_player 
+  nodes_to_launch:
+    - package: video_io
+      executable: video_player
       name: video_player
-    - package: video_io 
-      executable: video_saver 
+    - package: video_io
+      executable: video_saver
       name: video_saver
-    - package: rqt_image_view 
+    - package: rqt_image_view
       executable: rqt_image_view
       name: rqt_image_view
   video_player:
@@ -74,6 +78,7 @@ example3:
       publish_as_color: true
       add_timestamp: true
       filename: /home/maimon/eternarig_ws/src/video_io/videos/sample_multi_arena.m4v
+      verbose_logging: True
   video_saver:
     ros__parameters:
       output_fps_double: 30.0
@@ -81,21 +86,21 @@ example3:
       output_filename: /home/maimon/eternarig_ws/src/video_io/videos_saved/downsampled_multi_arena
       record_every_nth_frame: 5
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
+      verbose_logging: True
 
-
-example4: 
+example4:
   example_name: record in bursts, based on burst command subscription
-  nodes_to_launch: 
-    - package: video_io 
-      executable: video_player 
+  nodes_to_launch:
+    - package: video_io
+      executable: video_player
       name: video_player
-    - package: video_io 
-      executable: burst_video_saver 
+    - package: video_io
+      executable: burst_video_saver
       name: burst_video_saver
-    - package: video_io 
-      executable: simple_burst_publisher 
+    - package: video_io
+      executable: simple_burst_publisher
       name: simple_burst_publisher
-    - package: rqt_image_view 
+    - package: rqt_image_view
       executable: rqt_image_view
       name: rqt_image_view
   video_player:
@@ -106,6 +111,7 @@ example4:
       publish_as_color: true
       add_timestamp: true
       filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
+      verbose_logging: True
   burst_video_saver:
     ros__parameters:
       output_fps_double: 30.0
@@ -113,8 +119,10 @@ example4:
       burst_record_command_topic: video_player/burst_commands
       output_filename: /home/maimon/eternarig_ws/src/video_io/videos_saved/burst_saved_fictrac_bee
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
-  simple_burst_publisher: 
-    ros__parameters: 
+      verbose_logging: True
+  simple_burst_publisher:
+    ros__parameters:
       burst_record_command_topic: video_player/burst_commands
       burst_interval_s: 7.0
-      record_duration_s: 1.0 
+      record_duration_s: 1.0
+      verbose_logging: True
