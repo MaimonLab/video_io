@@ -25,6 +25,19 @@
 //   return std::put_time(&tm, "%d-%m-%Y %H-%M-%S").tostring();
 //   // return date::format("%T", now);
 // }
+std::string datetime_str()
+{
+  // auto now = system_clock::now();
+
+  auto t = std::time(nullptr);
+  auto tm = *std::localtime(&t);
+
+  std::ostringstream oss;
+  oss << std::put_time(&tm, "%y/%m/%d %H:%M:%S");
+  auto str = oss.str();
+
+  return str;
+}
 
 std::string time_in_HH_MM_SS_MMM()
 {
@@ -132,12 +145,14 @@ void ImagePublisherNode::publishImage()
   if (add_timestamp)
   {
     // Now use puttext() to do a white S
-    int fontFace = cv::FONT_HERSHEY_SIMPLEX;
+    // int fontFace = cv::FONT_HERSHEY_SIMPLEX;
+    int fontFace = cv::FONT_HERSHEY_PLAIN;
     double fontScale = 1.0;
-    std::string timestamp = time_in_HH_MM_SS_MMM();
+    // std::string timestamp = time_in_HH_MM_SS_MMM();
+    std::string timestamp = datetime_str();
     // resized_frame[];
-    cv::rectangle(resized_frame, cv::Point(width - 195, height - 30), cv::Point(width, height), cv::Scalar(0, 0, 0), cv::FILLED, cv::LINE_8);
-    cv::putText(resized_frame, timestamp, cv::Point(width - 190, height - 5), fontFace, fontScale, cv::Scalar(255, 255, 255), 1, false);
+    cv::rectangle(resized_frame, cv::Point(0, height - 17), cv::Point(165, height), cv::Scalar(0, 0, 0), cv::FILLED, cv::LINE_8);
+    cv::putText(resized_frame, timestamp, cv::Point(0, height - 5), fontFace, fontScale, cv::Scalar(255, 255, 255), 1, false);
   }
 
   if (publish_as_color)
