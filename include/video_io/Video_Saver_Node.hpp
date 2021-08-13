@@ -17,6 +17,16 @@ private:
     int record_every_nth_frame;
     int skip_counter;
     double output_fps;
+    bool burn_timestamp;
+
+    float font_scale = 2;
+    int thickness = 1;
+    int baseline = 0 + thickness;
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+    cv::Size text_size;
+
     std::string file_extension;
     std::string image_topic;
     std::string output_filename;

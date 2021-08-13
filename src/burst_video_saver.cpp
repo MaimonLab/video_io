@@ -34,6 +34,8 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
     codec = this->declare_parameter<std::string>("codec", "mjpg");
     record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 0);
+    burn_timestamp = this->declare_parameter<bool>("burn_timestamp", false);
+    skip_counter = 0;
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
     verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
 
@@ -67,6 +69,15 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
             }
             file_extension = codec_option[2];
         }
+    }
+    
+    if (burn_timestamp){
+        time(&rawtime);
+        timeinfo = localtime(&rawtime);
+        strftime(buffer, 80, "%m/%d/%Y %H:%M:%S",timeinfo);
+        std::string time_string(buffer);
+        text_size = cv::getTextSize(time_string, cv::FONT_HERSHEY_PLAIN, 
+                                            font_scale, 1, &baseline);
     }
 
     if (verbose_logging)
@@ -125,12 +136,29 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
     int64_t now_time = get_clock()->now().nanoseconds();
     bool in_burst_window = (now_time > time_at_start_burst) & (now_time < time_at_end_burst);
 
+    // RCLCPP_INFO(get_logger(), "skip_counter %i", skip_counter);
+    // if (skip_counter == record_every_nth_frame)
+    
     if (in_burst_window)
     {
         cv::Mat frame(
             msg->height, msg->width, encoding2mat_type(msg->encoding),
             const_cast<unsigned char *>(msg->data.data()), msg->step);
+        
 
+        if (burn_timestamp){
+            time(&rawtime);
+            timeinfo = localtime(&rawtime);
+            strftime(buffer, 80, "%m/%d/%Y %H:%M:%S",timeinfo);
+            std::string time_string(buffer);
+                    
+            cv::rectangle(frame, cv::Point(0, frame.rows ), 
+                                cv::Point(text_size.width, frame.rows - (text_size.height + 5)), 
+                                cv::Scalar(0,0,0), -1);
+            cv::putText(frame, time_string, cv::Point(0, frame.rows), 
+                        cv::FONT_HERSHEY_PLAIN, font_scale, CV_RGB(255,255,255), thickness);
+        }
+        
         outputVideo.write(frame);
 
         csv_file.open(output_csv_filename, std::ios::app);
