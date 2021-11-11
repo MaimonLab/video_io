@@ -58,7 +58,15 @@ VideoPublisherNode::VideoPublisherNode() : Node("number_publisher")
 {
 
   loop_play = this->declare_parameter<bool>("loop_play", false);
-  filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
+
+  // filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
+  filename = this->declare_parameter<std::string>("filename", "");
+  if (filename == "")
+  {
+    RCLCPP_ERROR(get_logger(), "No filename provided! Closing Node");
+    return;
+  }
+
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
   start_frame = this->declare_parameter<int>("start_frame", 0);
   downsample_ratio = this->declare_parameter<double>("downsample_ratio", 1.0);
@@ -187,7 +195,10 @@ int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<VideoPublisherNode>();
-  rclcpp::spin(node);
+  if (node->filename != "")
+  {
+    rclcpp::spin(node);
+  }
   rclcpp::shutdown();
   return 0;
 }

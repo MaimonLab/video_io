@@ -18,7 +18,7 @@ example1:
       publish_as_color: true
       add_timestamp: true
       verbose_logging: True
-      filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
+      # filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
   video_saver:
     ros__parameters:
       output_fps_double: 30.0
