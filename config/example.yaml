@@ -110,20 +110,21 @@ example4:
       image_topic: video_player/image
       publish_as_color: true
       add_timestamp: true
-      filename: /home/maimon/test_ws/src/video_io/videos/fictrac_bee.mp4
+      filename: /home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4
       verbose_logging: True
   burst_video_saver:
     ros__parameters:
       output_fps_double: 30.0
       image_topic: video_player/image
       burst_record_command_topic: video_player/burst_commands
-      output_filename: /home/maimon/test_ws/src/video_io/videos_saved/burst_saved_fictrac_bee
+      output_filename: /home/maimon/eternarig_ws/src/video_io/videos_saved/burst_saved_fictrac_bee
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
-      verbose_logging: True
-      # save_as_single_video: True
+      # verbose_logging: True
+      verbose_logging: False
+      save_as_single_video: True
   simple_burst_publisher:
     ros__parameters:
       burst_record_command_topic: video_player/burst_commands
-      burst_interval_s: 7.0
+      burst_interval_s: 10.0
       record_duration_s: 1.0
       verbose_logging: True

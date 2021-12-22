@@ -40,7 +40,7 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
     verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
 
-    save_as_single_video = this->declare_parameter<bool>("save_as_single_video", false);
+    save_as_single_video = this->declare_parameter<bool>("save_as_single_video", true);
 
     first_message = false;
     burst_message_received = false;
@@ -101,14 +101,8 @@ void BurstVideoSaverNode::initialize_file(std::string filename, cv::Size S, bool
 
     std::string video_filename = filename + "." + file_extension;
 
-    RCLCPP_WARN(get_logger(), "Initializing file %s", video_filename.c_str());
-
     outputVideo.open(video_filename, fourcc, output_fps, S, isColor);
-
-    // csv file to save timestamps from image header file
-    // output_csv_filename = filename + "/csv" + datetime_stamp + "_timestamps.csv";
     output_csv_filename = filename + ".csv ";
-    RCLCPP_WARN(get_logger(), "Initializing file %s", output_csv_filename.c_str());
 
     csv_file.open(output_csv_filename, std::ios::out);
     csv_file << "frame_id, timestamp\n";
@@ -165,11 +159,6 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
         }
         if (burst_message_received)
         {
-            // time(&rawtime);
-            // timeinfo = localtime(&rawtime);
-            // strftime(buffer, 80, "%m/%d/%Y %H:%M:%S", timeinfo);
-            // std::string datetime_stamp(buffer);
-            // std::string video_filename = filename + "/video_" + datetime_stamp + "." + file_extension;
             cv::Size S = cv::Size(msg->width, msg->height);
             bool isColor;
             if ((msg->encoding == "mono8") || (msg->encoding == "8UC1"))
@@ -182,13 +171,13 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
                 isColor = true;
             }
 
+            // get datetime string for video name
             struct tm *timeinfo;
             char buffer[80];
             time(&rawtime);
             timeinfo = localtime(&rawtime);
-            std::strftime(buffer, 80, " %Y%M%d_%H%M%S.", timeinfo);
+            std::strftime(buffer, 80, "%Y%M%d_%H%M%S", timeinfo);
             std::string datetime_stamp(buffer);
-            RCLCPP_WARN(get_logger(), "timeinfo %s", buffer);
 
             std::string filename = output_filename + "/burstvideo_" + buffer;
 
