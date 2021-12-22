@@ -179,7 +179,13 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
             std::strftime(buffer, 80, "%Y%M%d_%H%M%S", timeinfo);
             std::string datetime_stamp(buffer);
 
-            std::string filename = output_filename + "/burstvideo_" + buffer;
+            // split output full filename to get only last part of filename
+            std::stringstream s(output_filename);
+            std::string name_string = "";
+            while (std::getline(s, name_string, '/'))
+            {
+            }
+            std::string filename = output_filename + "/" + name_string + "_" + buffer;
 
             this->initialize_file(filename, S, isColor);
             burst_message_received = false;
