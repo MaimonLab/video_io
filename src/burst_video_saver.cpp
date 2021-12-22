@@ -17,7 +17,8 @@
 #include <fstream>
 #include "video_io/msg/burst_record_command.hpp"
 #include "burst_video_saver.hpp"
-
+#include "rcpputils/filesystem_helper.hpp"
+#include <time.h>
 using std::placeholders::_1;
 
 /// OpenCV codecs for video writing
@@ -39,7 +40,10 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
     output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
     verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
 
+    save_as_single_video = this->declare_parameter<bool>("save_as_single_video", false);
+
     first_message = false;
+    burst_message_received = false;
     skip_counter = 0;
     time_at_start_burst = 0;
     time_at_end_burst = 0;
@@ -48,12 +52,6 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
     {
         RCLCPP_INFO(get_logger(), "Output csv %s", output_csv_filename.c_str());
     }
-
-    // csv file to save timestamps from image header file
-    output_csv_filename = output_filename + "_timestamps.csv";
-    csv_file.open(output_csv_filename, std::ios::out);
-    csv_file << "frame_id, timestamp\n";
-    csv_file.close();
 
     for (auto codec_option : CODECS)
     {
@@ -70,14 +68,15 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
             file_extension = codec_option[2];
         }
     }
-    
-    if (burn_timestamp){
+
+    if (burn_timestamp)
+    {
         time(&rawtime);
         timeinfo = localtime(&rawtime);
-        strftime(buffer, 80, "%m/%d/%Y %H:%M:%S",timeinfo);
+        strftime(buffer, 80, "%m/%d/%Y %H:%M:%S", timeinfo);
         std::string time_string(buffer);
-        text_size = cv::getTextSize(time_string, cv::FONT_HERSHEY_PLAIN, 
-                                            font_scale, 1, &baseline);
+        text_size = cv::getTextSize(time_string, cv::FONT_HERSHEY_PLAIN,
+                                    font_scale, 1, &baseline);
     }
 
     if (verbose_logging)
@@ -97,9 +96,30 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
     burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&BurstVideoSaverNode::burst_callback, this, _1));
 }
 
+void BurstVideoSaverNode::initialize_file(std::string filename, cv::Size S, bool isColor)
+{
+
+    std::string video_filename = filename + "." + file_extension;
+
+    RCLCPP_WARN(get_logger(), "Initializing file %s", video_filename.c_str());
+
+    outputVideo.open(video_filename, fourcc, output_fps, S, isColor);
+
+    // csv file to save timestamps from image header file
+    // output_csv_filename = filename + "/csv" + datetime_stamp + "_timestamps.csv";
+    output_csv_filename = filename + ".csv ";
+    RCLCPP_WARN(get_logger(), "Initializing file %s", output_csv_filename.c_str());
+
+    csv_file.open(output_csv_filename, std::ios::out);
+    csv_file << "frame_id, timestamp\n";
+    csv_file.close();
+}
+
 void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)
 {
     float record_duration = msg->record_duration_s;
+
+    burst_message_received = true;
 
     time_at_start_burst = this->now().nanoseconds();
     time_at_end_burst = time_at_start_burst + int64_t(1e9 * record_duration);
@@ -114,51 +134,94 @@ void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand
 
 void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
-    if (!first_message)
+    if (save_as_single_video)
     {
-        cv::Size S = cv::Size(msg->width, msg->height);
-        bool isColor;
-        if ((msg->encoding == "mono8") || (msg->encoding == "8UC1"))
+        if (!first_message)
         {
+            cv::Size S = cv::Size(msg->width, msg->height);
+            bool isColor;
+            if ((msg->encoding == "mono8") || (msg->encoding == "8UC1"))
+            {
 
-            isColor = false;
-        }
-        else
-        {
-            isColor = true;
-        }
+                isColor = false;
+            }
+            else
+            {
+                isColor = true;
+            }
 
-        outputVideo.open(output_filename + "." + file_extension, fourcc, output_fps, S, isColor);
-        first_message = true;
+            this->initialize_file(output_filename, S, isColor);
+            first_message = true;
+        }
     }
+    else
+    {
+        if (!first_message)
+        {
+
+            auto path_to_create = rcpputils::fs::path(output_filename);
+            rcpputils::fs::create_directories(path_to_create);
+            first_message = true;
+        }
+        if (burst_message_received)
+        {
+            // time(&rawtime);
+            // timeinfo = localtime(&rawtime);
+            // strftime(buffer, 80, "%m/%d/%Y %H:%M:%S", timeinfo);
+            // std::string datetime_stamp(buffer);
+            // std::string video_filename = filename + "/video_" + datetime_stamp + "." + file_extension;
+            cv::Size S = cv::Size(msg->width, msg->height);
+            bool isColor;
+            if ((msg->encoding == "mono8") || (msg->encoding == "8UC1"))
+            {
+
+                isColor = false;
+            }
+            else
+            {
+                isColor = true;
+            }
+
+            struct tm *timeinfo;
+            char buffer[80];
+            time(&rawtime);
+            timeinfo = localtime(&rawtime);
+            std::strftime(buffer, 80, " %Y%M%d_%H%M%S.", timeinfo);
+            std::string datetime_stamp(buffer);
+            RCLCPP_WARN(get_logger(), "timeinfo %s", buffer);
+
+            std::string filename = output_filename + "/burstvideo_" + buffer;
+
+            this->initialize_file(filename, S, isColor);
+            burst_message_received = false;
+        }
+    }
+
     skip_counter += 1;
 
     int64_t now_time = get_clock()->now().nanoseconds();
     bool in_burst_window = (now_time > time_at_start_burst) & (now_time < time_at_end_burst);
 
-    // RCLCPP_INFO(get_logger(), "skip_counter %i", skip_counter);
-    // if (skip_counter == record_every_nth_frame)
-    
     if (in_burst_window)
     {
         cv::Mat frame(
             msg->height, msg->width, encoding2mat_type(msg->encoding),
             const_cast<unsigned char *>(msg->data.data()), msg->step);
-        
 
-        if (burn_timestamp){
+        if (burn_timestamp)
+        {
             time(&rawtime);
             timeinfo = localtime(&rawtime);
-            strftime(buffer, 80, "%m/%d/%Y %H:%M:%S",timeinfo);
+            strftime(buffer, 80, "%m/%d/%Y %H:%M:%S", timeinfo);
             std::string time_string(buffer);
-                    
-            cv::rectangle(frame, cv::Point(0, frame.rows ), 
-                                cv::Point(text_size.width, frame.rows - (text_size.height + 5)), 
-                                cv::Scalar(0,0,0), -1);
-            cv::putText(frame, time_string, cv::Point(0, frame.rows), 
-                        cv::FONT_HERSHEY_PLAIN, font_scale, CV_RGB(255,255,255), thickness);
+
+            cv::rectangle(frame, cv::Point(0, frame.rows),
+                          cv::Point(text_size.width, frame.rows - (text_size.height + 5)),
+                          cv::Scalar(0, 0, 0), -1);
+            cv::putText(frame, time_string, cv::Point(0, frame.rows),
+                        cv::FONT_HERSHEY_PLAIN, font_scale, CV_RGB(255, 255, 255), thickness);
         }
-        
+
         outputVideo.write(frame);
 
         csv_file.open(output_csv_filename, std::ios::app);
