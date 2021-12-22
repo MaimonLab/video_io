@@ -119,10 +119,12 @@ example4:
       burst_record_command_topic: video_player/burst_commands
       output_filename: /home/maimon/eternarig_ws/src/video_io/videos_saved/burst_saved_fictrac_bee
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
-      verbose_logging: True
+      # verbose_logging: True
+      verbose_logging: False
+      save_as_single_video: True
   simple_burst_publisher:
     ros__parameters:
       burst_record_command_topic: video_player/burst_commands
-      burst_interval_s: 7.0
+      burst_interval_s: 10.0
       record_duration_s: 1.0
       verbose_logging: True

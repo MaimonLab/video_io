@@ -11,8 +11,11 @@ public:
 private:
     void topic_callback(const sensor_msgs::msg::Image::SharedPtr msg);
     void burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg);
+    void initialize_file(std::string filename, cv::Size S, bool isColor);
 
+    bool save_as_single_video;
     bool first_message;
+    bool burst_message_received;
     bool verbose_logging;
     int fourcc;
     int record_every_nth_frame;
@@ -24,10 +27,10 @@ private:
     int thickness = 1;
     int baseline = 0 + thickness;
     time_t rawtime;
-    struct tm * timeinfo;
+    struct tm *timeinfo;
     char buffer[80];
     cv::Size text_size;
-    
+
     int64_t time_at_start_burst;
     int64_t time_at_end_burst;
     std::string file_extension;
