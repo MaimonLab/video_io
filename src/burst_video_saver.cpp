@@ -226,6 +226,11 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
         csv_file << "\n";
         csv_file.close();
     }
+    else if (outputVideo.isOpened() && (save_as_single_video == false))
+    {
+        // release video if open at end of burst period. Only if every burst is saved as a separate file
+        outputVideo.release();
+    }
     if (skip_counter >= record_every_nth_frame)
     {
         skip_counter = 0;
