@@ -176,7 +176,7 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
             char buffer[80];
             time(&rawtime);
             timeinfo = localtime(&rawtime);
-            std::strftime(buffer, 80, "%Y%M%d_%H%M%S", timeinfo);
+            std::strftime(buffer, 80, "%Y%m%d_%H%M%S", timeinfo);
             std::string datetime_stamp(buffer);
 
             // split output full filename to get only last part of filename
