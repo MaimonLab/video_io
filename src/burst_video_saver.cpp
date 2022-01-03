@@ -19,6 +19,7 @@
 #include "burst_video_saver.hpp"
 #include "rcpputils/filesystem_helper.hpp"
 #include <time.h>
+#include <libgen.h>
 using std::placeholders::_1;
 
 /// OpenCV codecs for video writing
@@ -27,6 +28,14 @@ const std::vector<std::vector<std::string>> CODECS = {
     {"xvid", "XVID", "avi"},
     {"mjpg", "MJPG", "avi"},
     {"raw", "", "avi"}};
+
+void create_folder_for_file(std::string filename)
+{
+    char *directory = const_cast<char *>(filename.c_str());
+    std::string output_folder = dirname(directory);
+    auto path_to_create = rcpputils::fs::path(output_folder);
+    rcpputils::fs::create_directories(path_to_create);
+}
 
 BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
 {
@@ -143,6 +152,8 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
             {
                 isColor = true;
             }
+
+            create_folder_for_file(output_filename);
 
             this->initialize_file(output_filename, S, isColor);
             first_message = true;

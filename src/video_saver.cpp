@@ -13,6 +13,8 @@
 #include "image_transport/image_transport.hpp"
 #include "cv_bridge/cv_bridge.h"
 #include "video_io/color_encoding.h"
+#include "rcpputils/filesystem_helper.hpp"
+#include <libgen.h>
 
 #include <iostream>
 #include <fstream>
@@ -27,6 +29,14 @@ const std::vector<std::vector<std::string>> CODECS = {
     {"mjpg", "MJPG", "avi"},
     {"raw", "", "avi"}};
 
+void create_folder_for_file(std::string filename)
+{
+    char *directory = const_cast<char *>(filename.c_str());
+    std::string output_folder = dirname(directory);
+    auto path_to_create = rcpputils::fs::path(output_folder);
+    rcpputils::fs::create_directories(path_to_create);
+}
+
 VideoSaverNode::VideoSaverNode() : Node("number_publisher")
 {
     first_message = false;
@@ -36,10 +46,17 @@ VideoSaverNode::VideoSaverNode() : Node("number_publisher")
     record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 1);
     burn_timestamp = this->declare_parameter<bool>("burn_timestamp", false);
     skip_counter = 0;
-    output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
+    output_filename = this->declare_parameter<std::string>("output_filename", "");
     verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
 
     skip_counter = 0;
+
+    if (output_filename == "")
+    {
+        RCLCPP_ERROR(get_logger(), "No output filename provided");
+    }
+
+    create_folder_for_file(output_filename);
 
     // create a csv file to log image header timestamps
     output_csv_filename = output_filename + "_timestamps.csv";
@@ -72,16 +89,16 @@ VideoSaverNode::VideoSaverNode() : Node("number_publisher")
     {
         RCLCPP_INFO(get_logger(), "Saving video to %s", output_filename.c_str());
     }
-    if (burn_timestamp){
+    if (burn_timestamp)
+    {
         time(&rawtime);
         timeinfo = localtime(&rawtime);
-        strftime(buffer, 80, "%m/%d/%Y %H:%M:%S",timeinfo);
+        strftime(buffer, 80, "%m/%d/%Y %H:%M:%S", timeinfo);
         std::string time_string(buffer);
-        text_size = cv::getTextSize(time_string, cv::FONT_HERSHEY_PLAIN, 
-                                            font_scale, 1, &baseline);
+        text_size = cv::getTextSize(time_string, cv::FONT_HERSHEY_PLAIN,
+                                    font_scale, 1, &baseline);
     }
 
-    
     rclcpp::QoS qos_subscribe(50);
     qos_subscribe.best_effort();
 
@@ -114,20 +131,19 @@ void VideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg
         cv::Mat frame(
             msg->height, msg->width, encoding2mat_type(msg->encoding),
             const_cast<unsigned char *>(msg->data.data()), msg->step);
-        
-        
-        
-        if (burn_timestamp){
+
+        if (burn_timestamp)
+        {
             time(&rawtime);
             timeinfo = localtime(&rawtime);
-            strftime(buffer, 80, "%m/%d/%Y %H:%M:%S",timeinfo);
+            strftime(buffer, 80, "%m/%d/%Y %H:%M:%S", timeinfo);
             std::string time_string(buffer);
-                    
-            cv::rectangle(frame, cv::Point(0, frame.rows ), 
-                                cv::Point(text_size.width, frame.rows - (text_size.height + 5)), 
-                                cv::Scalar(0,0,0), -1);
-            cv::putText(frame, time_string, cv::Point(0, frame.rows), 
-                        cv::FONT_HERSHEY_PLAIN, font_scale, CV_RGB(255,255,255), thickness);
+
+            cv::rectangle(frame, cv::Point(0, frame.rows),
+                          cv::Point(text_size.width, frame.rows - (text_size.height + 5)),
+                          cv::Scalar(0, 0, 0), -1);
+            cv::putText(frame, time_string, cv::Point(0, frame.rows),
+                        cv::FONT_HERSHEY_PLAIN, font_scale, CV_RGB(255, 255, 255), thickness);
         }
 
         outputVideo.write(frame);
