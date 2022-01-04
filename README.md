@@ -2,11 +2,25 @@
 
 ROS2 package to play and save videos
 
+- [Installation instructions](#installation_instructions)
+
+<a name=installation_instructions></a>
+
+# Installation instructions
+
+Video codec dependencies
+
+    # ubuntu-restricted extras required to play H264 codecs?
+    sudo apt-get install ubuntu-restricted-extras
+
+    # Codec to play `.avi` with the default movie player.
+    sudo apt-get install libdvdnav4  gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly libdvd-pkg
+
 # Example
 
 To run the basic example, type:
 
-    ros2 launch video_io example.launch
+    ros2 launch video_io example.launch.py
 
 This will prompt you to pick an index for one of the examples. The examples provided are:
 

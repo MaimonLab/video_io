@@ -6,6 +6,7 @@ class VideoPublisherNode : public rclcpp::Node
 {
 public:
     VideoPublisherNode();
+    std::string filename;
 
 private:
     void publishImage();
@@ -24,7 +25,6 @@ private:
     int start_frame;
     double publish_frequency;
     double downsample_ratio;
-    std::string filename;
     std::string image_topic;
     std::string latency_topic;
     cv::VideoCapture cap;
