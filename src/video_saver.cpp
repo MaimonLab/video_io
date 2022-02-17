@@ -48,6 +48,7 @@ VideoSaverNode::VideoSaverNode() : Node("number_publisher")
     skip_counter = 0;
     output_filename = this->declare_parameter<std::string>("output_filename", "");
     verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
+    quit_after_s_seconds = this->declare_parameter<int>("quit_after_s_seconds", -1);
 
     skip_counter = 0;
 
@@ -104,6 +105,19 @@ VideoSaverNode::VideoSaverNode() : Node("number_publisher")
 
     subscription_ = this->create_subscription<sensor_msgs::msg::Image>(
         image_topic, qos_subscribe, std::bind(&VideoSaverNode::topic_callback, this, _1));
+
+    if (quit_after_s_seconds > 0)
+    {
+        RCLCPP_WARN(get_logger(), "Created timer that will close afer %i second", quit_after_s_seconds);
+        timer_ = this->create_wall_timer(std::chrono::seconds(quit_after_s_seconds), std::bind(&VideoSaverNode::quit_node, this));
+        // this->create_wall_timer(std::chrono::seconds(quit_after_s_seconds), std::bind(&VideoSaverNode::quit_node, this));
+    }
+}
+
+void VideoSaverNode::quit_node()
+{
+    RCLCPP_WARN(get_logger(), "Closing video saver node");
+    rclcpp::shutdown();
 }
 
 void VideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPtr msg)

@@ -10,12 +10,14 @@ public:
 
 private:
     void topic_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+    void quit_node();
 
     bool first_message;
     bool verbose_logging;
     int fourcc;
     int record_every_nth_frame;
     int skip_counter;
+    int quit_after_s_seconds;
     double output_fps;
     bool burn_timestamp;
 
@@ -23,7 +25,7 @@ private:
     int thickness = 1;
     int baseline = 0 + thickness;
     time_t rawtime;
-    struct tm * timeinfo;
+    struct tm *timeinfo;
     char buffer[80];
     cv::Size text_size;
 
@@ -35,6 +37,8 @@ private:
     std::string experiment_folder;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     cv::VideoWriter outputVideo;
+    // rclcpp::timer::WallTimer::SharedPtr timer_;
+    rclcpp::TimerBase::SharedPtr timer_;
 
     std::ofstream csv_file;
 };
