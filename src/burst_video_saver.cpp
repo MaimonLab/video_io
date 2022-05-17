@@ -111,7 +111,7 @@ void BurstVideoSaverNode::initialize_file(std::string filename, cv::Size S, bool
     std::string video_filename = filename + "." + file_extension;
 
     outputVideo.open(video_filename, fourcc, output_fps, S, isColor);
-    output_csv_filename = filename + ".csv ";
+    output_csv_filename = filename + ".csv";
 
     csv_file.open(output_csv_filename, std::ios::out);
     csv_file << "frame_id, timestamp\n";
