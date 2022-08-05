@@ -17,6 +17,7 @@ private:
     bool publish_latency;
     bool add_timestamp;
     bool verbose_logging;
+    bool qos_image_publish_reliable;
     int dt_ms;
     int total_n_frames;
     int width;

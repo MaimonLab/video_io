@@ -72,6 +72,7 @@ VideoPublisherNode::VideoPublisherNode() : Node("number_publisher")
   downsample_ratio = this->declare_parameter<double>("downsample_ratio", 1.0);
   add_timestamp = this->declare_parameter<bool>("add_timestamp", false);
   verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
+  qos_image_publish_reliable = this->declare_parameter<bool>("qos_image_publish_reliable", false);
 
   count = 0;
 
@@ -107,7 +108,15 @@ VideoPublisherNode::VideoPublisherNode() : Node("number_publisher")
   // QoS settigns best effort for volatile data
   image_topic = this->declare_parameter<std::string>("image_topic", "image");
   rclcpp::QoS qos_publish(1);
-  qos_publish.reliable();
+  if (qos_image_publish_reliable)
+  {
+    qos_publish.reliable();
+  }
+  else
+  {
+    qos_publish.best_effort();
+  }
+
   image_publisher = this->create_publisher<sensor_msgs::msg::Image>(image_topic, qos_publish);
 
   dt_ms = (int)(1000.0 / publish_frequency);
