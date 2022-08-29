@@ -112,10 +112,15 @@ void BurstVideoSaverNode::initialize_file(std::string filename, cv::Size S, bool
 
     outputVideo.open(video_filename, fourcc, output_fps, S, isColor);
     output_csv_filename = filename + ".csv";
+    output_trigger_filename = filename + "_burst_record_command.csv";
 
     csv_file.open(output_csv_filename, std::ios::out);
     csv_file << "frame_id, timestamp\n";
     csv_file.close();
+
+    trigger_csv_file.open(output_trigger_filename, std::ios::out);
+    trigger_csv_file << "timestamp,record_duration_s\n";
+    trigger_csv_file.close();
 }
 
 void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)
@@ -126,7 +131,14 @@ void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand
 
     time_at_start_burst = this->now().nanoseconds();
     time_at_end_burst = time_at_start_burst + int64_t(1e9 * record_duration);
+    trigger_csv_file.open(output_trigger_filename, std::ios::app);
+    trigger_csv_file << time_at_start_burst;
+    trigger_csv_file << ",";
+    trigger_csv_file << record_duration;
+    trigger_csv_file << "\n";
+    trigger_csv_file.close();
 
+    // trigger_csv_file <<
     if (verbose_logging)
     {
         RCLCPP_INFO(get_logger(), "Burst received for %f, Start time (timestamp): %zu", record_duration, time_at_start_burst);
