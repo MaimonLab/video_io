@@ -11,7 +11,8 @@ public:
 private:
     void topic_callback(const sensor_msgs::msg::Image::SharedPtr msg);
     void burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg);
-    void initialize_file(std::string filename, cv::Size S, bool isColor);
+    void initialize_frame_timestamps_file(std::string filename, cv::Size S, bool isColor);
+    void initialize_burst_commands_file();
 
     bool save_as_single_video;
     bool first_message;
@@ -37,11 +38,13 @@ private:
     std::string image_topic;
     std::string output_filename;
     std::string output_csv_filename;
+    std::string output_trigger_filename;
     std::string codec;
     std::string experiment_folder;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
     rclcpp::Subscription<video_io::msg::BurstRecordCommand>::SharedPtr burst_subscription;
     cv::VideoWriter outputVideo;
     std::ofstream csv_file;
+    std::ofstream trigger_csv_file;
 };
 #endif // _VIDEO_PUBLISHER_NODE_H

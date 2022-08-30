@@ -113,6 +113,7 @@ example4:
       publish_as_color: true
       add_timestamp: true
       filename: /home/maimon/maimon_ws/src/video_io/videos/fictrac_bee.mp4
+      qos_image_publish_reliable: True
       verbose_logging: True
   burst_video_saver:
     ros__parameters:
@@ -122,7 +123,7 @@ example4:
       output_filename: /home/maimon/maimon_ws/src/video_io/videos_saved/burst_saved_fictrac_bee
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
       # verbose_logging: True
-      verbose_logging: False
+      verbose_logging: True
       save_as_single_video: False
   simple_burst_publisher:
     ros__parameters:
