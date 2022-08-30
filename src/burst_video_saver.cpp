@@ -104,23 +104,32 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
 
     burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&BurstVideoSaverNode::burst_callback, this, _1));
 }
+void BurstVideoSaverNode::initialize_burst_commands_file()
+{
 
-void BurstVideoSaverNode::initialize_file(std::string filename, cv::Size S, bool isColor)
+    output_trigger_filename = output_filename + "_burst_record_command.csv";
+
+    trigger_csv_file.open(output_trigger_filename, std::ios::out);
+    trigger_csv_file << "timestamp,record_duration_s\n";
+    trigger_csv_file.close();
+}
+
+void BurstVideoSaverNode::initialize_frame_timestamps_file(std::string filename, cv::Size S, bool isColor)
 {
 
     std::string video_filename = filename + "." + file_extension;
 
     outputVideo.open(video_filename, fourcc, output_fps, S, isColor);
     output_csv_filename = filename + ".csv";
-    output_trigger_filename = filename + "_burst_record_command.csv";
+    // output_trigger_filename = filename + "_burst_record_command.csv";
 
     csv_file.open(output_csv_filename, std::ios::out);
     csv_file << "frame_id, timestamp\n";
     csv_file.close();
 
-    trigger_csv_file.open(output_trigger_filename, std::ios::out);
-    trigger_csv_file << "timestamp,record_duration_s\n";
-    trigger_csv_file.close();
+    // trigger_csv_file.open(output_trigger_filename, std::ios::out);
+    // trigger_csv_file << "timestamp,record_duration_s\n";
+    // trigger_csv_file.close();
 }
 
 void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)
@@ -130,6 +139,9 @@ void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand
     burst_message_received = true;
 
     time_at_start_burst = this->now().nanoseconds();
+    uint64_t time_at_start_burst_2 = msg->header.stamp.nanosec + msg->header.stamp.sec * 1.e9;
+    RCLCPP_INFO(get_logger(), "nanosec: %i", time_at_start_burst_2);
+
     time_at_end_burst = time_at_start_burst + int64_t(1e9 * record_duration);
     trigger_csv_file.open(output_trigger_filename, std::ios::app);
     trigger_csv_file << time_at_start_burst;
@@ -167,7 +179,8 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
 
             create_folder_for_file(output_filename);
 
-            this->initialize_file(output_filename, S, isColor);
+            this->initialize_frame_timestamps_file(output_filename, S, isColor);
+            this->initialize_burst_commands_file();
             first_message = true;
         }
     }
@@ -178,6 +191,7 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
 
             auto path_to_create = rcpputils::fs::path(output_filename);
             rcpputils::fs::create_directories(path_to_create);
+            this->initialize_burst_commands_file();
             first_message = true;
         }
         if (burst_message_received)
@@ -210,7 +224,7 @@ void BurstVideoSaverNode::topic_callback(const sensor_msgs::msg::Image::SharedPt
             }
             std::string filename = output_filename + "/" + name_string + "_" + buffer;
 
-            this->initialize_file(filename, S, isColor);
+            this->initialize_frame_timestamps_file(filename, S, isColor);
             burst_message_received = false;
         }
     }

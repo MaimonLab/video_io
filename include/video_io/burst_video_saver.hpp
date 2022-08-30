@@ -11,7 +11,8 @@ public:
 private:
     void topic_callback(const sensor_msgs::msg::Image::SharedPtr msg);
     void burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg);
-    void initialize_file(std::string filename, cv::Size S, bool isColor);
+    void initialize_frame_timestamps_file(std::string filename, cv::Size S, bool isColor);
+    void initialize_burst_commands_file();
 
     bool save_as_single_video;
     bool first_message;
