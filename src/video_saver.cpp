@@ -56,6 +56,13 @@ VideoSaverNode::VideoSaverNode() : Node("number_publisher")
     {
         RCLCPP_ERROR(get_logger(), "No output filename provided");
     }
+    /* Convert ~ in filename to home directory */
+    if (output_filename[0] == '~')
+    {
+        std::string home = getenv("HOME");
+        output_filename.erase(0, 1);
+        output_filename = home + output_filename;
+    }
 
     create_folder_for_file(output_filename);
 

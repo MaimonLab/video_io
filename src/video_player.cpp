@@ -14,7 +14,6 @@
 
 #include "Video_Publisher_Node.hpp"
 #include "video_io/color_encoding.h"
-
 std::string datetime_str()
 {
   // get datetime string
@@ -59,12 +58,20 @@ VideoPublisherNode::VideoPublisherNode() : Node("number_publisher")
 
   loop_play = this->declare_parameter<bool>("loop_play", false);
 
-  // filename = this->declare_parameter<std::string>("filename", "/home/maimon/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
+  // filename = this->declare_parameter<std::string>("filename", "~/eternarig_ws/src/video_io/videos/fictrac_bee.mp4");
   filename = this->declare_parameter<std::string>("filename", "");
   if (filename == "")
   {
     RCLCPP_ERROR(get_logger(), "No filename provided! Closing Node");
     return;
+  }
+
+  /* Convert ~ in filename to home directory */
+  if (filename[0] == '~')
+  {
+    std::string home = getenv("HOME");
+    filename.erase(0, 1);
+    filename = home + filename;
   }
 
   publish_as_color = this->declare_parameter<bool>("publish_as_color", true);
