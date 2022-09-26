@@ -18,14 +18,15 @@ example1:
       publish_as_color: true
       add_timestamp: true
       verbose_logging: True
-      filename: /home/maimon/maimon_ws/src/video_io/videos/fictrac_bee.mp4
-      # qos_image_publish_reliable: True
+      # filename: ~/maimon_ws/src/video_io/videos/fictrac_bee.mp4
+      filename: ~/maimon_ws/src/video_io/videos/fictrac_bee.mp4
+      qos_image_publish_reliable: True
   video_saver:
     ros__parameters:
       output_fps_double: 30.0
       quit_after_s_seconds: 10
       image_topic: video_player/image
-      output_filename: /home/maimon/maimon_ws/src/video_io/videos_saved/fictrac_bee_saved_2
+      output_filename: ~/maimon_ws/src/video_io/videos_saved/fictrac_bee_saved_2
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
       verbose_logging: True
 
@@ -49,12 +50,12 @@ example2:
       publish_as_color: true
       add_timestamp: true
       verbose_logging: True
-      filename: /home/maimon/maimon_ws/src/video_io/videos/fictrac_bee.mp4
+      filename: ~/maimon_ws/src/video_io/videos/fictrac_bee.mp4
   video_saver:
     ros__parameters:
       output_fps_double: 30.0
       image_topic: video_player/image
-      output_filename: /home/maimon/maimon_ws/src/video_io/videos_saved/fictrac_bee_skippedframes
+      output_filename: ~/maimon_ws/src/video_io/videos_saved/fictrac_bee_skippedframes
       record_every_nth_frame: 5
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
       verbose_logging: True
@@ -79,13 +80,13 @@ example3:
       image_topic: video_player/image
       publish_as_color: true
       add_timestamp: true
-      filename: /home/maimon/maimon_ws/src/video_io/videos/sample_multi_arena.m4v
+      filename: ~/maimon_ws/src/video_io/videos/sample_multi_arena.m4v
       verbose_logging: True
   video_saver:
     ros__parameters:
       output_fps_double: 30.0
       image_topic: video_player/image
-      output_filename: /home/maimon/maimon_ws/src/video_io/videos_saved/downsampled_multi_arena
+      output_filename: ~/maimon_ws/src/video_io/videos_saved/downsampled_multi_arena
       record_every_nth_frame: 5
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
       verbose_logging: True
@@ -112,7 +113,7 @@ example4:
       image_topic: video_player/image
       publish_as_color: true
       add_timestamp: true
-      filename: /home/maimon/maimon_ws/src/video_io/videos/fictrac_bee.mp4
+      filename: ~/maimon_ws/src/video_io/videos/fictrac_bee.mp4
       qos_image_publish_reliable: True
       verbose_logging: True
   burst_video_saver:
@@ -120,7 +121,7 @@ example4:
       output_fps_double: 30.0
       image_topic: video_player/image
       burst_record_command_topic: video_player/burst_commands
-      output_filename: /home/maimon/maimon_ws/src/video_io/videos_saved/burst_saved_fictrac_bee
+      output_filename: ~/maimon_ws/src/video_io/videos_saved/burst_saved_fictrac_bee
       codec: mjpg # choose from [xvid, mjpg, h264, raw]
       # verbose_logging: True
       verbose_logging: True

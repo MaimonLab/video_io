@@ -46,7 +46,16 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
     record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 0);
     burn_timestamp = this->declare_parameter<bool>("burn_timestamp", false);
     skip_counter = 0;
-    output_filename = this->declare_parameter<std::string>("output_filename", "/home/maimon/Videos/video_io_video");
+
+    output_filename = this->declare_parameter<std::string>("output_filename", "~/Videos/video_io_video");
+    /* Convert ~ in filename to home directory */
+    if (output_filename[0] == '~')
+    {
+        std::string home = getenv("HOME");
+        output_filename.erase(0, 1);
+        output_filename = home + output_filename;
+    }
+
     verbose_logging = this->declare_parameter<bool>("verbose_logging", false);
 
     save_as_single_video = this->declare_parameter<bool>("save_as_single_video", true);
