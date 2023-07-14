@@ -18,7 +18,7 @@ find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-
+find_package(image_transport REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(include/video_io)
 
@@ -32,6 +32,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES 
   std_msgs
 )
+
+
+
 ament_export_dependencies(rosidl_default_runtime)
 
 
@@ -51,6 +54,8 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
+  "image_transport"
+  "cv_bridge"
 )
 target_link_libraries(video_player 
   color_encoding
@@ -69,7 +74,8 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
-  
+  image_transport
+  cv_bridge
 )
 
 # burst video saver 
@@ -86,6 +92,8 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
+  "image_transport"
+  "cv_bridge"
 )
 
 # burst publisher, for testing 
