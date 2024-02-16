@@ -3,3 +3,5 @@ data/**
 **/log/**
 videos_saved/**
 build
+.idea/*
+cmake-build*/*

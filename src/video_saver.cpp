@@ -42,7 +42,7 @@ VideoSaverNode::VideoSaverNode() : Node("number_publisher")
     first_message = false;
     image_topic = this->declare_parameter<std::string>("image_topic", "image");
     output_fps = this->declare_parameter<double>("output_fps_double", 30.0);
-    codec = this->declare_parameter<std::string>("codec", "mjpg");
+    codec = this->declare_parameter<std::string>("codec", "h264");
     record_every_nth_frame = this->declare_parameter<int>("record_every_nth_frame", 1);
     burn_timestamp = this->declare_parameter<bool>("burn_timestamp", false);
     skip_counter = 0;
