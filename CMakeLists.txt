@@ -54,8 +54,8 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
-  "image_transport"
-  "cv_bridge"
+  image_transport
+  cv_bridge
 )
 target_link_libraries(video_player 
   color_encoding
@@ -92,8 +92,8 @@ ament_target_dependencies(
   rclcpp 
   OpenCV
   sensor_msgs
-  "image_transport"
-  "cv_bridge"
+  image_transport
+  cv_bridge
 )
 
 # burst publisher, for testing 
