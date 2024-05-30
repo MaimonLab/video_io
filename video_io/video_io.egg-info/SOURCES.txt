@@ -1,0 +1,16 @@
+package.xml
+setup.cfg
+setup.py
+resource/video_io
+video_io/__init__.py
+video_io/burst_video_saver.py
+video_io/simple_burst_publisher.py
+video_io/video_player.py
+video_io/video_saver.py
+video_io.egg-info/PKG-INFO
+video_io.egg-info/SOURCES.txt
+video_io.egg-info/dependency_links.txt
+video_io.egg-info/entry_points.txt
+video_io.egg-info/requires.txt
+video_io.egg-info/top_level.txt
+video_io.egg-info/zip-safe

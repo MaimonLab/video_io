@@ -15,7 +15,7 @@
 #include "video_io/color_encoding.h"
 #include <iostream>
 #include <fstream>
-#include "video_io/msg/burst_record_command.hpp"
+#include "video_io_cpp/msg/burst_record_command.hpp"
 #include "burst_video_saver.hpp"
 #include "rcpputils/filesystem_helper.hpp"
 #include <time.h>
@@ -111,7 +111,7 @@ BurstVideoSaverNode::BurstVideoSaverNode() : Node("number_publisher")
     rclcpp::QoS qos_burst_subscription(10);
     qos_burst_subscription.best_effort();
 
-    burst_subscription = this->create_subscription<video_io::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&BurstVideoSaverNode::burst_callback, this, _1));
+    burst_subscription = this->create_subscription<video_io_cpp::msg::BurstRecordCommand>(burst_record_command_topic, qos_burst_subscription, std::bind(&BurstVideoSaverNode::burst_callback, this, _1));
 }
 void BurstVideoSaverNode::initialize_burst_commands_file()
 {
@@ -136,7 +136,7 @@ void BurstVideoSaverNode::initialize_frame_timestamps_file(std::string filename,
     csv_file.close();
 }
 
-void BurstVideoSaverNode::burst_callback(const video_io::msg::BurstRecordCommand::SharedPtr msg)
+void BurstVideoSaverNode::burst_callback(const video_io_cpp::msg::BurstRecordCommand::SharedPtr msg)
 {
     float record_duration = msg->record_duration_s;
 

@@ -1,0 +1,69 @@
+launch_settings:
+  override_config_selection_for_this_file: False
+  quit_all_if_single_node_quits: True
+  verbose: False
+  save_data_to_folder: True
+  top_data_folder: ~/bringup_example_data/video_io_test
+  prompt_notes: False
+  prompt_custom_experiment_name: False
+  use_date_sub_folder: True
+  nodes_to_launch:
+#    - package: flir_camera_driver
+#      executable: publish_camera
+#      name: ball_camera
+    - package: video_io_py
+      executable: video_saver_py
+      name: video_saver
+    - package: flir_camera_driver
+      executable: dummy_cam
+      name: dummy_cam
+#    - package: video_compressor
+#      executable: video_compressor
+#      name: video_compressor
+
+ball_camera:
+  ros__parameters:
+    image_topic: ball_camera/image
+    output_filename: .
+    publish_color: false
+    publish_grayscale: true
+    camera_settings:
+      AcquisitionFrameRate: 120
+      AcquisitionFrameRateAuto: Off
+      AcquisitionFrameRateEnabled: true
+      BinningVertical: 1
+      GainAuto: Continuous
+      LineInverter: true
+      LineMode: Output
+      LineSelector: Line3
+      LineSource: ExposureActive
+      TriggerMode: Off
+    camera_chunkdata:
+      FrameCounter:
+        ChunkEnable: true
+        ChunkModeActive: true
+      Timestamp:
+        ChunkEnable: true
+        ChunkModeActive: true
+
+dummy_cam:
+  ros__parameters:
+    image_topic: ball_camera/image
+    img_size:
+      - 512
+      - 512
+    img_pub_rate: 60
+
+video_saver:
+  ros__parameters:
+    image_topic: ball_camera/image
+    output_fps_double: 60.0
+    quit_after_s_seconds: 10
+    output_filename: .
+    codec: nvenc_hevc # choose from [mjpeg, h264, h265, raw, nvenc_hevc]
+
+video_compressor:
+  ros__parameters:
+    delete_uncompressed: False
+    codec: hevc_nvenc
+    crf: 23

@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: video-io
+Version: 0.2.0
+Summary: General use nodes that play or save video files.
+Maintainer: James Ryu
+Maintainer-email: jyu01@rockefeller.edu
+License: LGPLv3
+Requires-Dist: setuptools

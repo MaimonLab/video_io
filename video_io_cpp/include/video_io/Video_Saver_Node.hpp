@@ -1,3 +1,4 @@
+@@ -1,45 +0,0 @@
 
 #ifndef _VIDEO_PUBLISHER_NODE_H_
 #define _VIDEO_PUBLISHER_NODE_H_
