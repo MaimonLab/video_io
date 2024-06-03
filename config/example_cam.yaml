@@ -3,20 +3,20 @@ launch_settings:
   quit_all_if_single_node_quits: True
   verbose: False
   save_data_to_folder: True
-  top_data_folder: ~/bringup_example_data/video_io_test
+  top_data_folder: /mnt/data_drive/video_test_data/
   prompt_notes: False
   prompt_custom_experiment_name: False
   use_date_sub_folder: True
   nodes_to_launch:
-#    - package: flir_camera_driver
-#      executable: publish_camera
-#      name: ball_camera
-    - package: video_io_py
-      executable: video_saver_py
-      name: video_saver
     - package: flir_camera_driver
-      executable: dummy_cam
-      name: dummy_cam
+      executable: publish_camera
+      name: ball_camera
+    - package: video_io
+      executable: video_saver
+      name: video_saver
+#    - package: flir_camera_driver
+#      executable: dummy_cam
+#      name: dummy_cam
 #    - package: video_compressor
 #      executable: video_compressor
 #      name: video_compressor
@@ -27,8 +27,11 @@ ball_camera:
     output_filename: .
     publish_color: false
     publish_grayscale: true
+    stream_to_disk: true
+    codec: h264
+    burn_timestamp: true
     camera_settings:
-      AcquisitionFrameRate: 120
+      AcquisitionFrameRate: 60
       AcquisitionFrameRateAuto: Off
       AcquisitionFrameRateEnabled: true
       BinningVertical: 1
@@ -50,17 +53,19 @@ dummy_cam:
   ros__parameters:
     image_topic: ball_camera/image
     img_size:
-      - 512
+      - 640
       - 512
     img_pub_rate: 60
 
 video_saver:
   ros__parameters:
     image_topic: ball_camera/image
-    output_fps_double: 60.0
-    quit_after_s_seconds: 10
+    output_fps_double: 10.0
+    quit_after_s_seconds: 30
+    burn_timestamp: True
     output_filename: .
-    codec: nvenc_hevc # choose from [mjpeg, h264, h265, raw, nvenc_hevc]
+    verbose: True
+    codec: h264 # choose from [mjpeg, h264, h265, raw, nvenc_hevc]
 
 video_compressor:
   ros__parameters:

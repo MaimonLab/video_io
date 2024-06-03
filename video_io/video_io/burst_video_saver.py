@@ -123,6 +123,8 @@ class BurstVideoSaver(VideoSaver):
 
         while not self._term_thread.is_set():
             img, frame_id, timestamp = self.buffer.get(block=True)
+            if img is None:
+                break
             stamps.write(f'{frame_id},{timestamp}\n')
             pipe.stdin.write(img.astype(np.uint8).tobytes())
             pipe.stdin.flush()
@@ -138,6 +140,7 @@ class BurstVideoSaver(VideoSaver):
     def on_destroy(self):
         self._term_thread.set()
         self.record = False
+        self.buffer.put((None, None, None))
         with self.buffer.mutex:
             self.buffer.queue.clear()
             self.buffer.all_tasks_done.notify_all()

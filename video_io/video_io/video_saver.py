@@ -1,3 +1,5 @@
+import queue
+
 import cv2
 from cv_bridge import CvBridge
 from datetime import datetime
@@ -75,17 +77,18 @@ class VideoSaver(BasicNode):
 
         if self.verbose:
             self.print(
-                f'Saving csv to: {self.output_filename}_timestamps.csv\n'
+                f'\nSaving csv to: {self.output_filename}_timestamps.csv\n'
                 f'Saving csv to: {self.output_filename}.mp4\n'
-                f'Pipes open; ready to fetch from buffer!\n'
+                f'Pipes open; ready to fetch from buffer!'
             )
 
         while rclpy.ok():
             img, frame_id, timestamp = self.buffer.get(block=True)
+            if img is None:
+                break
             self.stamps.write(f'{frame_id},{timestamp}\n')
             self.pipe.stdin.write(img.astype(np.uint8).tobytes())
             self.pipe.stdin.flush()
-
         return
 
     def image_callback(self, msg: Image):
@@ -128,18 +131,25 @@ class VideoSaver(BasicNode):
         return img
 
     def quit_node(self):
-        self.print_warning('\nClosing video saver node...\n')
+        self.print_warning('Closing video saver node...')
+        self.buffer.put((None, None, None))
         raise KeyboardInterrupt
 
     def on_destroy(self):
+        while self.buffer.not_empty:
+            if self.verbose:
+                self.print(f'Buffer not empty! Processing leftover frame...')
+            try:
+                img, frame_id, timestamp = self.buffer.get(timeout=10)
+            except queue.Empty:
+                self.print(f'Buffer actually empty jk lol??')
+                break
+            if img is None:
+                break
+            self.stamps.write(f'{frame_id},{timestamp}\n')
+            self.pipe.stdin.write(img.astype(np.uint8).tobytes())
+            self.pipe.stdin.flush()
         with self.buffer.mutex:
-            while self.buffer.not_empty:
-                if self.verbose:
-                    self.print('Buffer not empty! Processing leftover frame...\n')
-                img, frame_id, timestamp = self.buffer.get()
-                self.stamps.write(f'{frame_id},{timestamp}\n')
-                self.pipe.stdin.write(img.astype(np.uint8).tobytes())
-                self.pipe.stdin.flush()
             self.buffer.queue.clear()
             self.buffer.all_tasks_done.notify_all()
             self.buffer.unfinished_tasks = 0
