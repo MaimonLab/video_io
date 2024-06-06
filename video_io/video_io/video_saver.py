@@ -82,7 +82,7 @@ class VideoSaver(BasicNode):
                 f'Pipes open; ready to fetch from buffer!'
             )
 
-        while rclpy.ok():
+        while True:
             img, frame_id, timestamp = self.buffer.get(block=True)
             if img is None:
                 break
@@ -140,7 +140,7 @@ class VideoSaver(BasicNode):
             if self.verbose:
                 self.print(f'Buffer not empty! Processing leftover frame...')
             try:
-                img, frame_id, timestamp = self.buffer.get(timeout=10)
+                img, frame_id, timestamp = self.buffer.get(timeout=1)
             except queue.Empty:
                 self.print(f'Buffer actually empty jk lol??')
                 break
