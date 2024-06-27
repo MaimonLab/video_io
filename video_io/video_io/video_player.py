@@ -37,6 +37,10 @@ class VideoPlayer(BasicNode):
         self.verbose = getattr(self, 'verbose_logging', self.verbose)
 
         self.cap = cv2.VideoCapture(self.filename)
+        if not self.cap.isOpened():
+            self.print_error("Could not open file!")
+            raise IOError
+
         self.frame_count = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
         self.w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -67,6 +71,12 @@ class VideoPlayer(BasicNode):
         while ret:
             time.sleep(1 / self.publish_frequency)
             ret, frame = self.cap.read()
+            if not ret:
+                break
+            if self.publish_as_color and frame.shape[-1] == 1:
+                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+            if not self.publish_as_color and frame.shape[-1] == 3:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             self.buffer.put(frame)
         if not ret and self.loop_play:
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
