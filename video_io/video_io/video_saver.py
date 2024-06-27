@@ -37,6 +37,7 @@ class VideoSaver(BasicNode):
         self.cv_bridge = CvBridge()
         self.skip_counter = 0
         self.buffer = Queue(50)
+        self.pipe = self.stamps = None
 
         self.register_subscriber(
             Image, self.image_topic,
@@ -136,6 +137,13 @@ class VideoSaver(BasicNode):
         raise KeyboardInterrupt
 
     def on_destroy(self):
+        if self.pipe is None or self.stamps is None:
+            self.print_error(
+                f'VideoSaver never initialized! '
+                f'Pipe may have never received a frame to save or '
+                f'the node process may have shutdown prematurely.')
+            return
+
         while self.buffer.not_empty:
             if self.verbose:
                 self.print(f'Buffer not empty! Processing leftover frame...')
@@ -154,6 +162,7 @@ class VideoSaver(BasicNode):
             self.buffer.all_tasks_done.notify_all()
             self.buffer.unfinished_tasks = 0
         self.buffer.join()
+
         self.stamps.close()
         self.pipe.stdin.close()
         self.pipe.wait()
