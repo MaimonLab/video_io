@@ -42,11 +42,12 @@ ffmpeg -hwaccels
   * `h264`: a very commonly used video compression standard; **slow**, **small**
   * `h265` or `hevc`: a commonly used high-efficiency video compression standard; **average**, **small**
   * Run: `ffmpeg -encoders` to check all codecs available for encoding on your computer 
-  > Note: to use GPU hardware acceleration, you must specify a compatible codec. For `-hwaccel cuda`, this is generally denoted with a prefix `nvenc_`. For example, to use `h265` compression with a CUDA-enabled GPU, specify `nvenc_hevc` as your codec.
+  > Note: to use GPU hardware acceleration, you must specify a compatible codec/encoder. For `-hwaccel cuda`, this is generally denoted with a prefix `nvenc_`. For example, to use `h265` compression with a CUDA-enabled GPU, specify `nvenc_hevc` as your codec.
+* `quality` (only for `h264`/`h265` codecs): set quality factor for some compression algorithms. For example, for `h265` compression, put `18` for this parameter to use constant QP mode and set the compression QP to 18. Note that compression quality decreases with QP: qp=0 is lossless, qp=12-18 maintains high quality (visually lossless), qp=23-28 is most common/average compression, up to a max of qp=51. We use a default of qp=24, but for most other codecs, FFMPEG will default to qp=24. 
 * `encoder_args`: any additional encoder options; run: `ffmpeg -h encoder=CODEC` to check all available options for your codec of choice
   > **Note**: this MUST be provided in the form of a list
 
-  > **Tip**: use this to control the compression quality. For example, for `h265` compression, put `[-rc, constantqp, -qp, 18]` for this parameter to set the compression QP to 18. Note that compression quality decreases with QP: qp=0 is lossless, qp=12-18 maintains high quality (visually lossless), qp=23-28 is most common/average compression, up to a max of qp=51. We use a default of qp=18 for `nvenc_hevc` codec, but for most other codecs, FFMPEG will default to qp=23.
+  > **Tip**: use this to control the compression quality for codecs that do not support constant QP (see above notes on `quality`.
 * `save_as_single_video` (only for `burst_video_saver`): compile all burst save events as a single video stream, otherwise each burst record command will save their own partial video [*default*: True]
 
 

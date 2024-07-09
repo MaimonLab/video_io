@@ -22,6 +22,7 @@ class VideoSaver(BasicNode):
             'image_topic': 'camera/image',
             'output_fps': 60.0,
             'codec': 'mjpeg',
+            'quality': 24,
             'encoder_args': [],
             'record_every_nth_frame': 1,
             'burn_timestamp': False,
@@ -64,8 +65,8 @@ class VideoSaver(BasicNode):
         ]
         if 'nvenc' in self.codec:
             cmd = cmd[:2] + ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda'] + cmd[2:]
-            if '-rc' not in self.encoder_args:
-                cmd.extend(['-rc', 'constqp', '-qp', '18'])
+        if '264' in self.codec or '265' in self.codec or 'evc' in self.codec:
+            cmd.extend(['-qp', f'{int(self.quality)}'])
         cmd.extend(self.encoder_args)
         cmd.append(f'{self.output_filename}.mp4')
         self.pipe = subprocess.Popen(

@@ -60,39 +60,30 @@ class VideoPlayer(BasicNode):
             Image, self.image_topic, reliable=self.reliable
         )
 
-        self.buffer = Queue(1)
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.start_frame)
         self.counter = 0
 
-        self.spawn_thread(self.publish_frame, daemon=True)
+        self.create_timer(1/self.publish_frequency, self.play_next_frame)
 
-    def fetch_next_frame(self):
-        ret = True
-        while ret:
-            time.sleep(1 / self.publish_frequency)
-            ret, frame = self.cap.read()
-            if not ret:
-                break
-            if self.publish_as_color and frame.shape[-1] == 1:
-                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-            if not self.publish_as_color and frame.shape[-1] == 3:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            self.buffer.put(frame)
+    def play_next_frame(self):
+        ret, frame = self.cap.read()
         if not ret and self.loop_play:
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-            self.fetch_next_frame()
+            ret, frame = self.cap.read()
 
-    def publish_frame(self):
-        while rclpy.ok():
-            img = self.buffer.get(block=True)
-            frame_id = str(self.counter)
-            timestamp = self.get_clock().now().nanoseconds
-            img = self._add_timestamp(img, frame_id, timestamp)
-            img_msg = self.bridge.cv2_to_imgmsg(img)
-            img_msg.header.frame_id = str(self.counter)
-            img_msg.header.stamp = Time(nanoseconds=timestamp).to_msg()
-            self.pub_video_player.publish(img_msg)
-            self.counter += 1
+        if self.publish_as_color and frame.shape[-1] == 1:
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+        if not self.publish_as_color and frame.shape[-1] == 3:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        timestamp = self.get_clock().now().nanoseconds
+        frame[:, :] = self._add_timestamp(frame, str(self.counter), timestamp)
+        img_msg = self.bridge.cv2_to_imgmsg(frame)
+        img_msg.header.frame_id = str(self.counter)
+        img_msg.header.stamp = Time(nanoseconds=timestamp).to_msg()
+        self.pub_video_player.publish(img_msg)
+
+        self.counter += 1
 
     def _add_timestamp(self, img, frame_id, timestamp):
         if not self.burn_timestamp:
@@ -116,7 +107,7 @@ class VideoPlayer(BasicNode):
 
 def main():
     rclpy.init()
-    VideoPlayer().run('fetch_next_frame')
+    VideoPlayer().run()
 
 
 if __name__ == '__main__':
