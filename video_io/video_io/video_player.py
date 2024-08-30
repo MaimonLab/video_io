@@ -23,6 +23,7 @@ class VideoPlayer(BasicNode):
             'loop_play': False,
             'publish_as_color': True,
             'publish_frequency': -1,
+            'publish_every_nth_frame': 1,
             'start_frame': 0,
             'downsample_ratio': 1.0,
             'burn_timestamp': False,
@@ -66,8 +67,12 @@ class VideoPlayer(BasicNode):
         self.create_timer(1/self.publish_frequency, self.play_next_frame)
 
     def play_next_frame(self):
-        ret, frame = self.cap.read()
-        if not ret and self.loop_play:
+        for n in range(self.publish_every_nth_frame):
+            ret, frame = self.cap.read()
+        if not ret:
+            if not self.loop_play:
+                self.print('Finished playback. Exiting.')
+                raise KeyboardInterrupt
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             ret, frame = self.cap.read()
 
@@ -77,7 +82,7 @@ class VideoPlayer(BasicNode):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         timestamp = self.get_clock().now().nanoseconds
-        frame[:, :] = self._add_timestamp(frame, str(self.counter), timestamp)
+        frame = self._add_timestamp(frame, str(self.counter), timestamp)
         img_msg = self.bridge.cv2_to_imgmsg(frame)
         img_msg.header.frame_id = str(self.counter)
         img_msg.header.stamp = Time(nanoseconds=timestamp).to_msg()
