@@ -43,8 +43,8 @@ class VideoPlayer(BasicNode):
             raise IOError
 
         self.frame_count = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
-        self.w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.w = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        self.h = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
         if self.publish_frequency < 0:
             self.publish_frequency = self.fps

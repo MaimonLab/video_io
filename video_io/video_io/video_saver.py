@@ -8,6 +8,7 @@ from queue import Queue
 import rclpy
 from sensor_msgs.msg import Image
 import subprocess
+from threading import Event
 
 from maimon_classes.basic_node import BasicNode
 
@@ -34,11 +35,14 @@ class VideoSaver(BasicNode):
         self.output_fps = getattr(self, 'output_fps_double', self.output_fps)
         self.verbose = getattr(self, 'verbose_logging', self.verbose)
 
-        self.initialized = False
         self.cv_bridge = CvBridge()
+        self.is_init = False
         self.skip_counter = 0
+
         self.buffer = Queue(50)
         self.pipe = self.stamps = None
+        self.term_ev = Event()
+        self.term_ev.clear()
 
         self.register_subscriber(
             Image, self.image_topic,
@@ -51,6 +55,26 @@ class VideoSaver(BasicNode):
             self.print_warning(f'Created timer that will close after '
                                f'{self.quit_after_s_seconds} seconds!')
             self.timer = self.create_timer(self.quit_after_s_seconds, self.quit_node)
+
+    def image_callback(self, msg: Image):
+        self.skip_counter += 1
+        if self.skip_counter < self.record_every_nth_frame:
+            return
+
+        img = self.cv_bridge.imgmsg_to_cv2(msg)
+        frame_id = int(msg.header.frame_id)
+        timestamp = int(msg.header.stamp.sec * 1e9 + msg.header.stamp.nanosec)
+
+        if not self.is_init:
+            self.output_shape = (img.shape[1], img.shape[0])
+            self.is_color = (len(img.shape) == 3)
+            self.is_init = True
+            self.spawn_thread(self.grab_and_save_frame, daemon=True)
+
+        self.add_timestamp(img, frame_id, timestamp)
+        self.buffer.put((img, frame_id, timestamp))
+        self.skip_counter = 0
+        return
 
     def grab_and_save_frame(self):
         cmd = [
@@ -84,33 +108,26 @@ class VideoSaver(BasicNode):
                 f'Pipes open; ready to fetch from buffer!'
             )
 
-        while True:
-            img, frame_id, timestamp = self.buffer.get(block=True)
-            if img is None:
-                break
+        while not self.term_ev.is_set():
+            try:
+                img, frame_id, timestamp = self.buffer.get(timeout=0.5)
+            except queue.Empty:
+                continue
             self.stamps.write(f'{frame_id},{timestamp}\n')
             self.pipe.stdin.write(img.astype(np.uint8).tobytes())
             self.pipe.stdin.flush()
-        return
 
-    def image_callback(self, msg: Image):
-        self.skip_counter += 1
-        if self.skip_counter < self.record_every_nth_frame:
-            return
-
-        img = self.cv_bridge.imgmsg_to_cv2(msg)
-        frame_id = int(msg.header.frame_id)
-        timestamp = int(msg.header.stamp.sec * 1e9 + msg.header.stamp.nanosec)
-
-        if not self.initialized:
-            self.output_shape = (img.shape[1], img.shape[0])
-            self.is_color = (len(img.shape) == 3)
-            self.spawn_thread(self.grab_and_save_frame, daemon=True)
-            self.initialized = True
-
-        self.add_timestamp(img, frame_id, timestamp)
-        self.buffer.put((img, frame_id, timestamp))
-        self.skip_counter = 0
+        # shutting down async objects
+        with self.buffer.mutex:
+            self.buffer.queue.clear()
+            self.buffer.all_tasks_done.notify_all()
+            self.buffer.unfinished_tasks = 0
+        self.buffer.join()
+        self.stamps.close()
+        self.pipe.stdin.close()
+        self.pipe.wait()
+        if self.verbose:
+            self.print_warning('All pipes and buffers joined and released cleanly.')
         return
 
     def add_timestamp(self, img, frame_id, timestamp):
@@ -134,41 +151,19 @@ class VideoSaver(BasicNode):
 
     def quit_node(self):
         self.print_warning('Closing video saver node...')
-        self.buffer.put((None, None, None))
+        self.term_ev.set()
+        # self.buffer.put((None, None, None))
         raise KeyboardInterrupt
 
     def on_destroy(self):
-        if self.pipe is None or self.stamps is None:
-            self.print_error(
+        if not self.is_init or self.pipe is None or self.stamps is None:
+            self.print_warning(
                 f'VideoSaver never initialized! '
                 f'Pipe may have never received a frame to save or '
                 f'the node process may have shutdown prematurely.')
             return
 
-        while self.buffer.not_empty:
-            if self.verbose:
-                self.print(f'Buffer not empty! Processing leftover frame...')
-            try:
-                img, frame_id, timestamp = self.buffer.get(timeout=1)
-            except queue.Empty:
-                self.print(f'Buffer actually empty jk lol??')
-                break
-            if img is None:
-                break
-            self.stamps.write(f'{frame_id},{timestamp}\n')
-            self.pipe.stdin.write(img.astype(np.uint8).tobytes())
-            self.pipe.stdin.flush()
-        with self.buffer.mutex:
-            self.buffer.queue.clear()
-            self.buffer.all_tasks_done.notify_all()
-            self.buffer.unfinished_tasks = 0
-        self.buffer.join()
-
-        self.stamps.close()
-        self.pipe.stdin.close()
-        self.pipe.wait()
-        if self.verbose:
-            self.print('All pipes and buffers joined and released cleanly.')
+        self.term_ev.set()
 
 
 def main():
