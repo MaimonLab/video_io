@@ -38,14 +38,14 @@ class BurstVideoSaver(VideoSaver):
             log=True,
         )
 
-        self._term_thread = Event()
+        self.output_filestem = self.output_filename
         self.record = False
         self.burst_duration = -1
         self.burst_start = -1
         self.burst_end = -1
 
     def burst_callback(self, msg: BurstRecordCommand):
-        self._term_thread.clear()
+        self.term_ev.clear()
         self.record = True
         self.burst_duration = msg.record_duration_s
         self.burst_start = msg.header.stamp.nanosec + 1e9 * msg.header.stamp.sec
@@ -63,92 +63,23 @@ class BurstVideoSaver(VideoSaver):
         if not self.record:
             return
 
-        self.skip_counter += 1
-        if self.skip_counter < self.record_every_nth_frame:
-            return
-
-        img = self.cv_bridge.imgmsg_to_cv2(msg)
-        frame_id = int(msg.header.frame_id)
         timestamp = int(msg.header.stamp.sec * 1e9 + msg.header.stamp.nanosec)
         if timestamp < self.burst_start or timestamp > self.burst_end:
             self.record = False
             if not self.save_as_single_video:
-                self._term_thread.set()
-                self.initialized = False
+                self.is_init = False
+                self.term_ev.set()
             return
 
-        if not self.initialized:
-            self.output_shape = (img.shape[1], img.shape[0])
-            self.is_color = (len(img.shape) == 3)
+        if not self.is_init:
+            self.buffer = Queue(50)
             if self.save_as_single_video:
-                self.filename = f'{self.output_filename}'
+                self.output_filename = f'{self.output_filestem}'
             else:
-                self.filename = f'{self.output_filename}_{datetime.now().strftime("%y%m%d_%H%M%S")}'
-            self.spawn_thread(self.grab_and_save_frame, daemon=True)
-            self.initialized = True
+                self.output_filename = f'{self.output_filestem}_{datetime.now().strftime("%y%m%d_%H%M%S")}'
 
-        self.add_timestamp(img, frame_id, timestamp)
-        self.buffer.put((img, frame_id, timestamp))
-        self.skip_counter = 0
+        super().image_callback(msg)
         return
-
-    def grab_and_save_frame(self):
-        cmd = [
-            'ffmpeg', '-y',
-            '-f', 'rawvideo',
-            '-vcodec', 'rawvideo',
-            '-s', f'{self.output_shape[0]}x{self.output_shape[1]}',
-            '-r', f'{self.output_fps}',
-            '-pix_fmt', 'rgb24' if self.is_color else 'gray',
-            '-i', '-', '-an',
-            '-vcodec', self.codec,
-        ]
-        if 'nvenc' in self.codec:
-            cmd = cmd[:2] + ['-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda'] + cmd[2:]
-        if '264' in self.codec or '265' in self.codec or 'evc' in self.codec:
-            cmd.extend(['-qp', f'{int(self.quality)}'])
-        cmd.extend(self.encoder_args)
-        cmd.append(f'{self.filename}.mp4')
-        pipe = subprocess.Popen(
-            cmd, stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        )
-        stamps = open(self.filename + '_timestamps.csv', 'w')
-        stamps.write('frame_id,timestamp\n')
-        if self.verbose:
-            self.print(
-                f'Saving csv to: {self.filename}_timestamps.csv\n'
-                f'Saving csv to: {self.filename}.mp4\n'
-                f'Pipes open; ready to fetch from buffer!\n'
-            )
-
-        while not self._term_thread.is_set():
-            img, frame_id, timestamp = self.buffer.get(block=True)
-            if img is None:
-                break
-            stamps.write(f'{frame_id},{timestamp}\n')
-            pipe.stdin.write(img.astype(np.uint8).tobytes())
-            pipe.stdin.flush()
-
-        self.buffer.queue.clear()
-        self.buffer.all_tasks_done.notify_all()
-        self.buffer.unfinished_tasks = 0
-        pipe.stdin.close()
-        pipe.wait()
-        stamps.close()
-        return
-
-    def on_destroy(self):
-        self._term_thread.set()
-        self.record = False
-        self.buffer.put((None, None, None))
-        with self.buffer.mutex:
-            self.buffer.queue.clear()
-            self.buffer.all_tasks_done.notify_all()
-            self.buffer.unfinished_tasks = 0
-        self.buffer.join()
-        if self.verbose:
-            self.print('All pipes and buffers joined and released cleanly.')
 
 
 def main():
