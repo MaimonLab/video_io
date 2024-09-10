@@ -1,10 +1,8 @@
-import queue
-
 import cv2
 from cv_bridge import CvBridge
 from datetime import datetime
 import numpy as np
-from queue import Queue
+from queue import Queue, Empty
 import rclpy
 from sensor_msgs.msg import Image
 import subprocess
@@ -111,7 +109,7 @@ class VideoSaver(BasicNode):
         while not self.term_ev.is_set():
             try:
                 img, frame_id, timestamp = self.buffer.get(timeout=0.5)
-            except queue.Empty:
+            except Empty:
                 continue
             self.stamps.write(f'{frame_id},{timestamp}\n')
             self.pipe.stdin.write(img.astype(np.uint8).tobytes())
