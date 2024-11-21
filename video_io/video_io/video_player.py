@@ -69,6 +69,8 @@ class VideoPlayer(BasicNode):
     def play_next_frame(self):
         for n in range(self.publish_every_nth_frame):
             ret, frame = self.cap.read()
+            self.counter += 1
+
         if not ret:
             if not self.loop_play:
                 self.print('Finished playback. Exiting.')
@@ -87,8 +89,6 @@ class VideoPlayer(BasicNode):
         img_msg.header.frame_id = str(self.counter)
         img_msg.header.stamp = Time(nanoseconds=timestamp).to_msg()
         self.pub_video_player.publish(img_msg)
-
-        self.counter += 1
 
     def _add_timestamp(self, img, frame_id, timestamp):
         if not self.burn_timestamp:
