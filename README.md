@@ -2,17 +2,14 @@
 
 ROS2 package to play and save videos
 
-- [Installation instructions](#installation_instructions)
-
-<a name=installation_instructions></a>
 
 # Installation instructions
+Use the installation script:
 
-Install FFMPEG through terminal:
+    ./install_description.sh
 
-```bash
-sudo apt install ffmpeg
-```
+This will install all dependencies, including the FFMPEG.
+
 
 # Hardware acceleration
 
@@ -50,6 +47,22 @@ ffmpeg -hwaccels
   > **Tip**: use this to control the compression quality for codecs that do not support constant QP (see above notes on `quality`.
 * `save_as_single_video` (only for `burst_video_saver`): compile all burst save events as a single video stream, otherwise each burst record command will save their own partial video [*default*: True]
 
+
+### **WARNING ON PREMATURE EXIT**
+
+In order for the saved MPEG video file to be decoded and read properly in the future,
+the container must include a *moov atom* that acts as a sort of table of contents. 
+This is generally added at the end of the file, so exiting an active stream
+prematurely can result in an incomplete container. This can be remedied by
+copying the atom from a video with similar structure. This can be achieved
+using a library called `untrunc`:
+  
+```bash
+sudo snap install --edge untrunc-anthwlock
+untrunc-anthwlock -s GOOD_VIDEO BROKEN_VIDEO
+```
+
+ 
 
 # Example
 
