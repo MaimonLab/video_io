@@ -1,0 +1,2 @@
+[console_scripts]
+video_saver = video_io.video_saver:main
